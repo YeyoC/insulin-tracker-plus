@@ -1,29 +1,114 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { useProfile } from "@/hooks/useProfile";
+import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "InsulinaApp — Home" },
+      { name: "description", content: "Track glucose and insulin with InsulinaApp." },
     ],
   }),
-  component: Index,
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Home() {
+  const navigate = useNavigate();
+  const { profile, ready } = useProfile();
+  const [now, setNow] = useState<Date | null>(null);
+  const [latest, setLatest] = useState<GlucoseEntry | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 30_000);
+    const refresh = () => {
+      const list = getGlucose();
+      setLatest(list[0] ?? null);
+    };
+    refresh();
+    window.addEventListener("insulina:update", refresh);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("insulina:update", refresh);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (ready && !profile) navigate({ to: "/setup" });
+  }, [ready, profile, navigate]);
+
+  if (!profile) return null;
+
+  const status = latest
+    ? glucoseStatus(latest.value, profile.rangeMin, profile.rangeMax)
+    : null;
+
+  const statusColor =
+    status === "ok"
+      ? "bg-success text-success-foreground"
+      : status === "warn"
+        ? "bg-warning text-warning-foreground"
+        : status === "danger"
+          ? "bg-danger text-danger-foreground"
+          : "bg-muted text-muted-foreground";
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <AppShell>
+      <header>
+        <p className="text-sm text-muted-foreground">
+          {now?.toLocaleString(undefined, {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </p>
+        <h1 className="mt-1 text-3xl font-bold text-primary">Hi, {profile.name}</h1>
+      </header>
+
+      <section className={`mt-6 rounded-2xl p-6 shadow-sm ${statusColor}`}>
+        <p className="text-sm opacity-90">Last glucose</p>
+        {latest ? (
+          <>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-5xl font-bold">{latest.value}</span>
+              <span className="text-lg opacity-90">mg/dL</span>
+            </div>
+            <p className="mt-2 text-sm opacity-90">
+              {latest.moment} ·{" "}
+              {new Date(latest.timestamp).toLocaleString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+                day: "numeric",
+                month: "short",
+              })}
+            </p>
+          </>
+        ) : (
+          <p className="mt-2 text-lg">No readings yet.</p>
+        )}
+      </section>
+
+      <div className="mt-6 grid grid-cols-2 gap-3">
+        <Link to="/glucose" className="card-action">
+          Log glucose
+        </Link>
+        <Link to="/insulin" className="card-action">
+          Log insulin
+        </Link>
+      </div>
+
+      <Link
+        to="/glucose"
+        aria-label="Add new entry"
+        className="fixed bottom-24 right-1/2 translate-x-[11rem] z-30 grid size-16 place-items-center rounded-full bg-secondary text-secondary-foreground shadow-lg shadow-secondary/30 hover:bg-primary transition-colors"
+      >
+        <Plus className="size-8" />
+      </Link>
+    </AppShell>
   );
 }
