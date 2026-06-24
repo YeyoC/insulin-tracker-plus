@@ -15,6 +15,7 @@ import { Route as InsulinRouteImport } from './routes/insulin'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as GlucoseRouteImport } from './routes/glucose'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MealsNewRouteImport } from './routes/meals.new'
 
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
@@ -46,22 +47,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MealsNewRoute = MealsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => MealsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/glucose': typeof GlucoseRoute
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
-  '/meals': typeof MealsRoute
+  '/meals': typeof MealsRouteWithChildren
   '/setup': typeof SetupRoute
+  '/meals/new': typeof MealsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/glucose': typeof GlucoseRoute
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
-  '/meals': typeof MealsRoute
+  '/meals': typeof MealsRouteWithChildren
   '/setup': typeof SetupRoute
+  '/meals/new': typeof MealsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,14 +77,29 @@ export interface FileRoutesById {
   '/glucose': typeof GlucoseRoute
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
-  '/meals': typeof MealsRoute
+  '/meals': typeof MealsRouteWithChildren
   '/setup': typeof SetupRoute
+  '/meals/new': typeof MealsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/glucose' | '/history' | '/insulin' | '/meals' | '/setup'
+  fullPaths:
+    | '/'
+    | '/glucose'
+    | '/history'
+    | '/insulin'
+    | '/meals'
+    | '/setup'
+    | '/meals/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/glucose' | '/history' | '/insulin' | '/meals' | '/setup'
+  to:
+    | '/'
+    | '/glucose'
+    | '/history'
+    | '/insulin'
+    | '/meals'
+    | '/setup'
+    | '/meals/new'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/insulin'
     | '/meals'
     | '/setup'
+    | '/meals/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -92,7 +116,7 @@ export interface RootRouteChildren {
   GlucoseRoute: typeof GlucoseRoute
   HistoryRoute: typeof HistoryRoute
   InsulinRoute: typeof InsulinRoute
-  MealsRoute: typeof MealsRoute
+  MealsRoute: typeof MealsRouteWithChildren
   SetupRoute: typeof SetupRoute
 }
 
@@ -140,15 +164,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meals/new': {
+      id: '/meals/new'
+      path: '/new'
+      fullPath: '/meals/new'
+      preLoaderRoute: typeof MealsNewRouteImport
+      parentRoute: typeof MealsRoute
+    }
   }
 }
+
+interface MealsRouteChildren {
+  MealsNewRoute: typeof MealsNewRoute
+}
+
+const MealsRouteChildren: MealsRouteChildren = {
+  MealsNewRoute: MealsNewRoute,
+}
+
+const MealsRouteWithChildren = MealsRoute._addFileChildren(MealsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   GlucoseRoute: GlucoseRoute,
   HistoryRoute: HistoryRoute,
   InsulinRoute: InsulinRoute,
-  MealsRoute: MealsRoute,
+  MealsRoute: MealsRouteWithChildren,
   SetupRoute: SetupRoute,
 }
 export const routeTree = rootRouteImport
