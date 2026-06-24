@@ -9,8 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupRouteImport } from './routes/setup'
+import { Route as MealsRouteImport } from './routes/meals'
+import { Route as InsulinRouteImport } from './routes/insulin'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as GlucoseRouteImport } from './routes/glucose'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MealsRoute = MealsRouteImport.update({
+  id: '/meals',
+  path: '/meals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsulinRoute = InsulinRouteImport.update({
+  id: '/insulin',
+  path: '/insulin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlucoseRoute = GlucoseRouteImport.update({
+  id: '/glucose',
+  path: '/glucose',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +49,90 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/glucose': typeof GlucoseRoute
+  '/history': typeof HistoryRoute
+  '/insulin': typeof InsulinRoute
+  '/meals': typeof MealsRoute
+  '/setup': typeof SetupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/glucose': typeof GlucoseRoute
+  '/history': typeof HistoryRoute
+  '/insulin': typeof InsulinRoute
+  '/meals': typeof MealsRoute
+  '/setup': typeof SetupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/glucose': typeof GlucoseRoute
+  '/history': typeof HistoryRoute
+  '/insulin': typeof InsulinRoute
+  '/meals': typeof MealsRoute
+  '/setup': typeof SetupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/glucose' | '/history' | '/insulin' | '/meals' | '/setup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/glucose' | '/history' | '/insulin' | '/meals' | '/setup'
+  id:
+    | '__root__'
+    | '/'
+    | '/glucose'
+    | '/history'
+    | '/insulin'
+    | '/meals'
+    | '/setup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GlucoseRoute: typeof GlucoseRoute
+  HistoryRoute: typeof HistoryRoute
+  InsulinRoute: typeof InsulinRoute
+  MealsRoute: typeof MealsRoute
+  SetupRoute: typeof SetupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meals': {
+      id: '/meals'
+      path: '/meals'
+      fullPath: '/meals'
+      preLoaderRoute: typeof MealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insulin': {
+      id: '/insulin'
+      path: '/insulin'
+      fullPath: '/insulin'
+      preLoaderRoute: typeof InsulinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glucose': {
+      id: '/glucose'
+      path: '/glucose'
+      fullPath: '/glucose'
+      preLoaderRoute: typeof GlucoseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +145,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GlucoseRoute: GlucoseRoute,
+  HistoryRoute: HistoryRoute,
+  InsulinRoute: InsulinRoute,
+  MealsRoute: MealsRoute,
+  SetupRoute: SetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
