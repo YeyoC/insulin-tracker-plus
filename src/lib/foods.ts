@@ -30,7 +30,7 @@ type OFFProduct = {
   product_name?: string;
   generic_name?: string;
   brands?: string;
-  nutriments?: { carbohydrates_100g?: number; ["carbohydrates_100g"]?: number };
+  nutriments?: { carbohydrates_100g?: number };
 };
 
 export async function searchFoods(query: string, signal?: AbortSignal): Promise<FoodResult[]> {
@@ -50,21 +50,20 @@ export async function searchFoods(query: string, signal?: AbortSignal): Promise<
     const res = await fetch(url.toString(), { signal });
     if (!res.ok) return local;
     const data = (await res.json()) as { products?: OFFProduct[] };
-    const remote: FoodResult[] = (data.products ?? [])
-      .map((p) => {
-        const name =
-          p.product_name?.trim() ||
-          p.generic_name?.trim() ||
-          p.brands?.trim() ||
-          "";
-        const carbs = p.nutriments?.carbohydrates_100g;
-        if (!name || typeof carbs !== "number" || Number.isNaN(carbs)) return null;
-        return { name, carbsPer100g: Math.round(carbs * 10) / 10, source: "off" as const };
-      })
-      .filter((x): x is FoodResult => x !== null)
-      .slice(0, 12);
+    const remote: FoodResult[] = [];
+    for (const p of data.products ?? []) {
+      const name =
+        p.product_name?.trim() || p.generic_name?.trim() || p.brands?.trim() || "";
+      const carbs = p.nutriments?.carbohydrates_100g;
+      if (!name || typeof carbs !== "number" || Number.isNaN(carbs)) continue;
+      remote.push({
+        name,
+        carbsPer100g: Math.round(carbs * 10) / 10,
+        source: "off",
+      });
+      if (remote.length >= 12) break;
+    }
 
-    // de-dupe by lowercase name
     const seen = new Set<string>();
     return [...local, ...remote].filter((f) => {
       const k = f.name.toLowerCase();
