@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { DayTimeline } from "@/components/DayTimeline";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 
@@ -93,14 +94,25 @@ function Home() {
         )}
       </section>
 
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <Link to="/glucose" className="card-action">
-          Log glucose
+      <div className="mt-6 grid grid-cols-3 gap-2">
+        <Link to="/glucose" className="card-action text-sm">
+          Glucose
         </Link>
-        <Link to="/insulin" className="card-action">
-          Log insulin
+        <Link to="/insulin" className="card-action text-sm">
+          Insulin
+        </Link>
+        <Link to="/meals/new" className="card-action text-sm">
+          Meal
         </Link>
       </div>
+
+      <section className="mt-8">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Today
+        </h2>
+        <DayTimeline profile={profile} />
+      </section>
+
 
       <Link
         to="/glucose"
