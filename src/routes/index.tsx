@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { DayTimeline } from "@/components/DayTimeline";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 
