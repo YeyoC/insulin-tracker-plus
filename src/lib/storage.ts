@@ -2,7 +2,7 @@
 
 export type Profile = {
   name: string;
-  wakeTime: string; // "HH:MM"
+  wakeTime: string;
   target: number;
   rangeMin: number;
   rangeMax: number;
@@ -33,10 +33,30 @@ export type InsulinEntry = {
   timestamp: string;
 };
 
+export type MealFood = {
+  name: string;
+  carbsPer100g: number;
+  grams: number;
+};
+
+export type MealEntry = {
+  id: string;
+  foods: MealFood[];
+  notes?: string;
+  timestamp: string;
+};
+
+export type TimelineEvent =
+  | { kind: "glucose"; id: string; timestamp: string; data: GlucoseEntry }
+  | { kind: "insulin"; id: string; timestamp: string; data: InsulinEntry }
+  | { kind: "meal"; id: string; timestamp: string; data: MealEntry };
+
 const KEYS = {
   profile: "insulina:profile",
   glucose: "insulina:glucose",
   insulin: "insulina:insulin",
+  meals: "insulina:meals",
+  foodUsage: "insulina:foodUsage",
 };
 
 const isBrowser = () => typeof window !== "undefined";
@@ -66,6 +86,8 @@ export const addGlucose = (e: Omit<GlucoseEntry, "id">) => {
   list.unshift({ ...e, id: crypto.randomUUID() });
   write(KEYS.glucose, list);
 };
+export const deleteGlucose = (id: string) =>
+  write(KEYS.glucose, getGlucose().filter((g) => g.id !== id));
 
 export const getInsulin = (): InsulinEntry[] => read<InsulinEntry[]>(KEYS.insulin, []);
 export const addInsulin = (e: Omit<InsulinEntry, "id">) => {
@@ -73,9 +95,78 @@ export const addInsulin = (e: Omit<InsulinEntry, "id">) => {
   list.unshift({ ...e, id: crypto.randomUUID() });
   write(KEYS.insulin, list);
 };
+export const deleteInsulin = (id: string) =>
+  write(KEYS.insulin, getInsulin().filter((i) => i.id !== id));
+
+export const getMeals = (): MealEntry[] => read<MealEntry[]>(KEYS.meals, []);
+export const addMeal = (e: Omit<MealEntry, "id">) => {
+  const list = getMeals();
+  list.unshift({ ...e, id: crypto.randomUUID() });
+  write(KEYS.meals, list);
+};
+export const deleteMeal = (id: string) =>
+  write(KEYS.meals, getMeals().filter((m) => m.id !== id));
+
+// Food usage tracking for frequent foods.
+type FoodUsage = Record<string, { name: string; carbsPer100g: number; count: number }>;
+export const getFoodUsage = (): FoodUsage => read<FoodUsage>(KEYS.foodUsage, {});
+export const trackFoodUsage = (foods: MealFood[]) => {
+  const usage = getFoodUsage();
+  for (const f of foods) {
+    const key = f.name.toLowerCase().trim();
+    if (!key) continue;
+    const prev = usage[key];
+    usage[key] = {
+      name: f.name,
+      carbsPer100g: f.carbsPer100g,
+      count: (prev?.count ?? 0) + 1,
+    };
+  }
+  write(KEYS.foodUsage, usage);
+};
+export const getFrequentFoods = (limit = 10) =>
+  Object.values(getFoodUsage())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
 
 export function glucoseStatus(v: number, min = 70, max = 180): "ok" | "warn" | "danger" {
   if (v < min || v > 250) return "danger";
   if (v > max) return "warn";
   return "ok";
+}
+
+export function carbsFor(food: { carbsPer100g: number; grams: number }) {
+  return (food.carbsPer100g * food.grams) / 100;
+}
+
+export function totalCarbs(foods: MealFood[]) {
+  return foods.reduce((sum, f) => sum + carbsFor(f), 0);
+}
+
+export function getTimelineForDay(date: Date): TimelineEvent[] {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const inDay = (ts: string) => {
+    const t = new Date(ts).getTime();
+    return t >= start.getTime() && t < end.getTime();
+  };
+
+  const events: TimelineEvent[] = [
+    ...getGlucose()
+      .filter((g) => inDay(g.timestamp))
+      .map((g) => ({ kind: "glucose" as const, id: g.id, timestamp: g.timestamp, data: g })),
+    ...getInsulin()
+      .filter((i) => inDay(i.timestamp))
+      .map((i) => ({ kind: "insulin" as const, id: i.id, timestamp: i.timestamp, data: i })),
+    ...getMeals()
+      .filter((m) => inDay(m.timestamp))
+      .map((m) => ({ kind: "meal" as const, id: m.id, timestamp: m.timestamp, data: m })),
+  ];
+
+  return events.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  );
 }
