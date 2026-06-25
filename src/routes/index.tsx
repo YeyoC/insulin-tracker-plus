@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { DayTimeline } from "@/components/DayTimeline";
+import { ActiveInsulinBar } from "@/components/ActiveInsulinBar";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 
@@ -105,6 +106,13 @@ function Home() {
           Meal
         </Link>
       </div>
+
+      <section className="mt-8">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Active insulin
+        </h2>
+        <ActiveInsulinBar />
+      </section>
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
