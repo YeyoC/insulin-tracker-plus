@@ -69,7 +69,12 @@ function Home() {
             minute: "2-digit",
           })}
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-primary">Hi, {profile.name}</h1>
+        <div className="mt-1 flex items-baseline justify-between gap-3">
+          <h1 className="text-3xl font-bold text-primary">Hi, {profile.name}</h1>
+          <Link to="/settings" className="text-sm font-medium text-secondary hover:underline">
+            Settings
+          </Link>
+        </div>
       </header>
 
       <section className={`mt-6 rounded-2xl p-6 shadow-sm ${statusColor}`}>
