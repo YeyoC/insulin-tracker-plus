@@ -81,7 +81,12 @@ function write<T>(key: string, value: T) {
   window.dispatchEvent(new Event("insulina:update"));
 }
 
-export const getProfile = (): Profile | null => read<Profile | null>(KEYS.profile, null);
+export const getProfile = (): Profile | null => {
+  const p = read<Profile | null>(KEYS.profile, null);
+  if (!p) return null;
+  // Migrate older profiles missing ICR/ISF.
+  return { icr: 15, isf: 50, ...p };
+};
 export const setProfile = (p: Profile) => write(KEYS.profile, p);
 
 export const getGlucose = (): GlucoseEntry[] => read<GlucoseEntry[]>(KEYS.glucose, []);
