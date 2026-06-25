@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as MealsRouteImport } from './routes/meals'
 import { Route as InsulinRouteImport } from './routes/insulin'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -21,6 +22,11 @@ import { Route as MealsNewRouteImport } from './routes/meals.new'
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MealsRoute = MealsRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
   '/meals': typeof MealsRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/meals/new': typeof MealsNewRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
   '/meals': typeof MealsRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/meals/new': typeof MealsNewRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
   '/meals': typeof MealsRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/meals/new': typeof MealsNewRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/insulin'
     | '/meals'
+    | '/settings'
     | '/setup'
     | '/meals/new'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/insulin'
     | '/meals'
+    | '/settings'
     | '/setup'
     | '/meals/new'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/insulin'
     | '/meals'
+    | '/settings'
     | '/setup'
     | '/meals/new'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   InsulinRoute: typeof InsulinRoute
   MealsRoute: typeof MealsRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
 }
 
@@ -140,6 +153,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meals': {
@@ -211,6 +231,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   InsulinRoute: InsulinRoute,
   MealsRoute: MealsRouteWithChildren,
+  SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
 }
 export const routeTree = rootRouteImport

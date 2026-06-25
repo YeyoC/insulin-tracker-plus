@@ -6,6 +6,8 @@ export type Profile = {
   target: number;
   rangeMin: number;
   rangeMax: number;
+  icr: number; // grams of carbs covered by 1U Lispro
+  isf: number; // mg/dL drop per 1U Lispro
 };
 
 export type GlucoseEntry = {
@@ -31,6 +33,8 @@ export type InsulinEntry = {
   site: InsulinSite;
   notes?: string;
   timestamp: string;
+  recommended?: number;
+  diffReason?: string;
 };
 
 export type MealFood = {
@@ -77,7 +81,11 @@ function write<T>(key: string, value: T) {
   window.dispatchEvent(new Event("insulina:update"));
 }
 
-export const getProfile = (): Profile | null => read<Profile | null>(KEYS.profile, null);
+export const getProfile = (): Profile | null => {
+  const p = read<Profile | null>(KEYS.profile, null);
+  if (!p) return null;
+  return { ...p, icr: p.icr ?? 15, isf: p.isf ?? 50 };
+};
 export const setProfile = (p: Profile) => write(KEYS.profile, p);
 
 export const getGlucose = (): GlucoseEntry[] => read<GlucoseEntry[]>(KEYS.glucose, []);
