@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { useAlertsEngine } from "../hooks/useAlertsEngine";
 
 function NotFoundComponent() {
   return (
@@ -115,6 +116,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useAlertsEngine();
 
   return (
     <QueryClientProvider client={queryClient}>
