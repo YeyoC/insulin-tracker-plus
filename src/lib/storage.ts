@@ -84,8 +84,7 @@ function write<T>(key: string, value: T) {
 export const getProfile = (): Profile | null => {
   const p = read<Profile | null>(KEYS.profile, null);
   if (!p) return null;
-  // Migrate older profiles missing ICR/ISF.
-  return { icr: 15, isf: 50, ...p };
+  return { ...p, icr: p.icr ?? 15, isf: p.isf ?? 50 };
 };
 export const setProfile = (p: Profile) => write(KEYS.profile, p);
 
