@@ -71,6 +71,10 @@ const KEYS = {
   insulin: "insulina:insulin",
   meals: "insulina:meals",
   foodUsage: "insulina:foodUsage",
+  exercise: "insulina:exercise",
+  hydration: "insulina:hydration",
+  specialDay: "insulina:specialDay",
+  nocturnal: "insulina:nocturnal",
 };
 
 const isBrowser = () => typeof window !== "undefined";
