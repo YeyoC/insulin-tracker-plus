@@ -1,5 +1,12 @@
 // Alert engine — evaluates state and stores alert history in localStorage.
-import { getGlucose, getInsulin, getMeals } from "./storage";
+import {
+  getExercise,
+  getGlucose,
+  getHydration,
+  getInsulin,
+  getMeals,
+  getSpecialDay,
+} from "./storage";
 import { PROFILES, windowFor, formatTime } from "./insulin";
 
 export type AlertLevel = "red" | "orange" | "yellow" | "blue";
@@ -171,6 +178,54 @@ export function evaluateAlerts(now: Date = new Date()) {
       )}.`,
     );
   }
+
+  // POST-EXERCISE — 60 min after exercise, single alert per session
+  for (const ex of getExercise()) {
+    const mins = (now.getTime() - new Date(ex.timestamp).getTime()) / MIN;
+    if (mins >= 60 && mins <= 75) {
+      fire(
+        `exercise:${ex.id}`,
+        "yellow",
+        "Check your glucose. Exercise can keep lowering it.",
+      );
+    }
+  }
+
+  // HYDRATION — fewer than 4 glasses by 6pm
+  if (now.getHours() >= 18) {
+    const glasses = getHydration(now);
+    if (glasses < 4) {
+      const dayBucket = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+      fire(
+        `hydration:${dayBucket}`,
+        "blue",
+        `Only ${glasses} glasses of water today. Try to drink more before bed.`,
+      );
+    }
+  }
+
+  // CRITICAL — glucose < 55, escalate as a second red alert
+  for (const g of glucose) {
+    if (g.value < 55) {
+      fire(
+        `red:critical:${g.id}`,
+        "red",
+        `Critical low glucose (${g.value} mg/dL). Get help if needed.`,
+      );
+    }
+  }
+
+  // SPECIAL DAY — extra check-in every 2 hours while active
+  const sd = getSpecialDay();
+  if (sd.active) {
+    const bucket = Math.floor(now.getTime() / (2 * 60 * MIN));
+    fire(
+      `special:${bucket}`,
+      "blue",
+      "Special day mode — quick check-in: how are you feeling? Log glucose if unsure.",
+    );
+  }
+
 
   // RESEND — red/orange unanswered after 20 min, once
   const list = read();

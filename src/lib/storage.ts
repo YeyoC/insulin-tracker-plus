@@ -1,5 +1,12 @@
 // Local storage helpers — client-only
 
+export type EmergencyContact = { name: string; phone: string };
+export type Inventory = {
+  units: number;
+  openedDate?: string; // ISO date
+  expirationDate?: string; // ISO date
+};
+
 export type Profile = {
   name: string;
   wakeTime: string;
@@ -8,6 +15,9 @@ export type Profile = {
   rangeMax: number;
   icr: number; // grams of carbs covered by 1U Lispro
   isf: number; // mg/dL drop per 1U Lispro
+  hydrationGoal?: number; // glasses/day, default 8
+  emergencyContact?: EmergencyContact;
+  inventory?: Inventory;
 };
 
 export type GlucoseEntry = {
@@ -61,6 +71,10 @@ const KEYS = {
   insulin: "insulina:insulin",
   meals: "insulina:meals",
   foodUsage: "insulina:foodUsage",
+  exercise: "insulina:exercise",
+  hydration: "insulina:hydration",
+  specialDay: "insulina:specialDay",
+  nocturnal: "insulina:nocturnal",
 };
 
 const isBrowser = () => typeof window !== "undefined";
@@ -178,3 +192,111 @@ export function getTimelineForDay(date: Date): TimelineEvent[] {
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   );
 }
+
+// ===== Exercise =====
+export type ExerciseType =
+  | "Weightlifting"
+  | "Cardio"
+  | "Crossfit"
+  | "Walking"
+  | "Swimming"
+  | "Cycling"
+  | "Other";
+export type ExerciseIntensity = "Light" | "Moderate" | "Intense";
+export type ExerciseContext = "Fasted" | "After a meal" | "With active insulin";
+
+export type ExerciseEntry = {
+  id: string;
+  type: ExerciseType;
+  durationMin: number;
+  intensity: ExerciseIntensity;
+  context: ExerciseContext;
+  notes?: string;
+  timestamp: string;
+};
+
+export const getExercise = (): ExerciseEntry[] =>
+  read<ExerciseEntry[]>(KEYS.exercise, []);
+export const addExercise = (e: Omit<ExerciseEntry, "id">) => {
+  const list = getExercise();
+  list.unshift({ ...e, id: crypto.randomUUID() });
+  write(KEYS.exercise, list);
+};
+export const deleteExercise = (id: string) =>
+  write(KEYS.exercise, getExercise().filter((x) => x.id !== id));
+
+// ===== Hydration =====
+const dayKey = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+type HydrationMap = Record<string, number>;
+export const getHydration = (date: Date = new Date()): number => {
+  const map = read<HydrationMap>(KEYS.hydration, {});
+  return map[dayKey(date)] ?? 0;
+};
+export const addGlass = (date: Date = new Date()) => {
+  const map = read<HydrationMap>(KEYS.hydration, {});
+  const k = dayKey(date);
+  map[k] = (map[k] ?? 0) + 1;
+  write(KEYS.hydration, map);
+};
+export const removeGlass = (date: Date = new Date()) => {
+  const map = read<HydrationMap>(KEYS.hydration, {});
+  const k = dayKey(date);
+  map[k] = Math.max(0, (map[k] ?? 0) - 1);
+  write(KEYS.hydration, map);
+};
+
+// ===== Special Day =====
+export type SpecialDayType =
+  | "Party/social event"
+  | "Travel"
+  | "High-stress day"
+  | "Illness"
+  | "Other";
+export type SpecialDayState = {
+  active: boolean;
+  type?: SpecialDayType;
+  startedAt?: string;
+};
+export const getSpecialDay = (): SpecialDayState =>
+  read<SpecialDayState>(KEYS.specialDay, { active: false });
+export const setSpecialDay = (s: SpecialDayState) => write(KEYS.specialDay, s);
+
+// ===== Nocturnal check =====
+export type NocturnalSymptom = "Sweating" | "Nightmares" | "Headache";
+type NocturnalMap = Record<string, { answered: boolean; symptoms: NocturnalSymptom[] }>;
+
+export const getNocturnalForToday = (date: Date = new Date()) => {
+  const map = read<NocturnalMap>(KEYS.nocturnal, {});
+  return map[dayKey(date)];
+};
+export const saveNocturnal = (
+  symptoms: NocturnalSymptom[],
+  date: Date = new Date(),
+) => {
+  const map = read<NocturnalMap>(KEYS.nocturnal, {});
+  map[dayKey(date)] = { answered: true, symptoms };
+  write(KEYS.nocturnal, map);
+};
+export const getNocturnalHistory = () =>
+  Object.entries(read<NocturnalMap>(KEYS.nocturnal, {}))
+    .map(([date, v]) => ({ date, ...v }))
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+// Average daily Lispro dose for inventory estimate
+export const averageDailyLispro = (days = 7): number => {
+  const now = Date.now();
+  const cutoff = now - days * 86_400_000;
+  const recent = getInsulin().filter(
+    (i) => i.type === "Lispro" && new Date(i.timestamp).getTime() >= cutoff,
+  );
+  if (recent.length === 0) return 0;
+  const total = recent.reduce((s, i) => s + i.units, 0);
+  return total / days;
+};
+

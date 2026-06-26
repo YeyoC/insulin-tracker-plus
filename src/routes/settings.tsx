@@ -1,12 +1,21 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { getProfile, setProfile, type Profile } from "@/lib/storage";
+import {
+  averageDailyLispro,
+  getProfile,
+  setProfile,
+  type Profile,
+} from "@/lib/storage";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — InsulinaApp" }] }),
   component: SettingsPage,
 });
+
+function daysBetween(a: Date, b: Date) {
+  return Math.floor((b.getTime() - a.getTime()) / 86_400_000);
+}
 
 function SettingsPage() {
   const navigate = useNavigate();
@@ -48,12 +57,128 @@ function SettingsPage() {
             <input type="number" min={1} value={p.isf} onChange={(e) => update("isf", Number(e.target.value))} className="input" />
           </Field>
         </div>
-        <p className="text-xs text-muted-foreground">
-          ICR = insulin-to-carb ratio. ISF = correction factor. Both apply to Lispro dose calculations.
-        </p>
+
+        <fieldset className="rounded-xl border border-border p-4">
+          <legend className="px-2 text-sm font-semibold text-primary">Hydration</legend>
+          <Field label="Daily goal (glasses)">
+            <input
+              type="number"
+              min={1}
+              value={p.hydrationGoal ?? 8}
+              onChange={(e) => update("hydrationGoal", Number(e.target.value))}
+              className="input"
+            />
+          </Field>
+        </fieldset>
+
+        <fieldset className="rounded-xl border border-border p-4 space-y-4">
+          <legend className="px-2 text-sm font-semibold text-primary">Emergency contact</legend>
+          <Field label="Name">
+            <input
+              value={p.emergencyContact?.name ?? ""}
+              onChange={(e) =>
+                update("emergencyContact", {
+                  name: e.target.value,
+                  phone: p.emergencyContact?.phone ?? "",
+                })
+              }
+              className="input"
+            />
+          </Field>
+          <Field label="Phone">
+            <input
+              type="tel"
+              value={p.emergencyContact?.phone ?? ""}
+              onChange={(e) =>
+                update("emergencyContact", {
+                  name: p.emergencyContact?.name ?? "",
+                  phone: e.target.value,
+                })
+              }
+              className="input"
+            />
+          </Field>
+        </fieldset>
+
+        <InventorySection profile={p} update={update} />
+
         <button type="submit" className="btn-primary w-full">Save</button>
       </form>
     </AppShell>
+  );
+}
+
+function InventorySection({
+  profile,
+  update,
+}: {
+  profile: Profile;
+  update: <K extends keyof Profile>(k: K, v: Profile[K]) => void;
+}) {
+  const inv = profile.inventory ?? { units: 0 };
+  const avg = useMemo(() => averageDailyLispro(), []);
+  const today = new Date();
+
+  const openedWarn = inv.openedDate
+    ? daysBetween(new Date(inv.openedDate), today) > 28
+    : false;
+  const expWarn = inv.expirationDate
+    ? daysBetween(today, new Date(inv.expirationDate)) <= 15
+    : false;
+  const daysRemaining =
+    inv.units > 0 && avg > 0 ? Math.floor(inv.units / avg) : null;
+
+  const set = <K extends keyof typeof inv>(k: K, v: (typeof inv)[K]) =>
+    update("inventory", { ...inv, [k]: v });
+
+  return (
+    <fieldset className="rounded-xl border border-border p-4 space-y-4">
+      <legend className="px-2 text-sm font-semibold text-primary">Insulin inventory</legend>
+      <Field label="Remaining units in vial/pen">
+        <input
+          type="number"
+          min={0}
+          value={inv.units}
+          onChange={(e) => set("units", Number(e.target.value))}
+          className="input"
+        />
+      </Field>
+      <Field label="Vial opened on">
+        <input
+          type="date"
+          value={inv.openedDate ?? ""}
+          onChange={(e) => set("openedDate", e.target.value)}
+          className="input"
+        />
+      </Field>
+      <Field label="Expiration date">
+        <input
+          type="date"
+          value={inv.expirationDate ?? ""}
+          onChange={(e) => set("expirationDate", e.target.value)}
+          className="input"
+        />
+      </Field>
+
+      <div className="space-y-2 text-sm">
+        {daysRemaining !== null && (
+          <p className="text-muted-foreground">
+            Estimated days remaining: <strong>{daysRemaining}</strong>{" "}
+            <span className="text-xs">(avg {avg.toFixed(1)}U/day Lispro)</span>
+          </p>
+        )}
+        {openedWarn && (
+          <p className="rounded-md bg-warning/15 px-3 py-2 text-warning-foreground">
+            ⚠ Vial has been open for more than 28 days.
+          </p>
+        )}
+        {expWarn && (
+          <p className="rounded-md bg-danger/15 px-3 py-2 text-danger">
+            ⚠ Expiration within 15 days.
+          </p>
+        )}
+      </div>
+    </fieldset>
   );
 }
 
