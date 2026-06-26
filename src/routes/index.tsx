@@ -4,6 +4,8 @@ import { Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { DayTimeline } from "@/components/DayTimeline";
 import { ActiveInsulinBar } from "@/components/ActiveInsulinBar";
+import { HomeExtras } from "@/components/HomeExtras";
+import { CriticalGlucoseOverlay } from "@/components/CriticalGlucoseOverlay";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 

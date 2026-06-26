@@ -5,7 +5,6 @@ import {
   getHydration,
   getInsulin,
   getMeals,
-  getProfile,
   getSpecialDay,
 } from "./storage";
 import { PROFILES, windowFor, formatTime } from "./insulin";
