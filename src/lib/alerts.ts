@@ -1,5 +1,13 @@
 // Alert engine — evaluates state and stores alert history in localStorage.
-import { getGlucose, getInsulin, getMeals } from "./storage";
+import {
+  getExercise,
+  getGlucose,
+  getHydration,
+  getInsulin,
+  getMeals,
+  getProfile,
+  getSpecialDay,
+} from "./storage";
 import { PROFILES, windowFor, formatTime } from "./insulin";
 
 export type AlertLevel = "red" | "orange" | "yellow" | "blue";

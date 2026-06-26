@@ -15,6 +15,7 @@ import { Route as MealsRouteImport } from './routes/meals'
 import { Route as InsulinRouteImport } from './routes/insulin'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as GlucoseRouteImport } from './routes/glucose'
+import { Route as ExerciseRouteImport } from './routes/exercise'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MealsNewRouteImport } from './routes/meals.new'
@@ -49,6 +50,11 @@ const GlucoseRoute = GlucoseRouteImport.update({
   path: '/glucose',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExerciseRoute = ExerciseRouteImport.update({
+  id: '/exercise',
+  path: '/exercise',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlertsRoute = AlertsRouteImport.update({
   id: '/alerts',
   path: '/alerts',
@@ -68,6 +74,7 @@ const MealsNewRoute = MealsNewRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/exercise': typeof ExerciseRoute
   '/glucose': typeof GlucoseRoute
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/exercise': typeof ExerciseRoute
   '/glucose': typeof GlucoseRoute
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/alerts': typeof AlertsRoute
+  '/exercise': typeof ExerciseRoute
   '/glucose': typeof GlucoseRoute
   '/history': typeof HistoryRoute
   '/insulin': typeof InsulinRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/alerts'
+    | '/exercise'
     | '/glucose'
     | '/history'
     | '/insulin'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/alerts'
+    | '/exercise'
     | '/glucose'
     | '/history'
     | '/insulin'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/alerts'
+    | '/exercise'
     | '/glucose'
     | '/history'
     | '/insulin'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertsRoute: typeof AlertsRoute
+  ExerciseRoute: typeof ExerciseRoute
   GlucoseRoute: typeof GlucoseRoute
   HistoryRoute: typeof HistoryRoute
   InsulinRoute: typeof InsulinRoute
@@ -190,6 +203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GlucoseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/exercise': {
+      id: '/exercise'
+      path: '/exercise'
+      fullPath: '/exercise'
+      preLoaderRoute: typeof ExerciseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alerts': {
       id: '/alerts'
       path: '/alerts'
@@ -227,6 +247,7 @@ const MealsRouteWithChildren = MealsRoute._addFileChildren(MealsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertsRoute: AlertsRoute,
+  ExerciseRoute: ExerciseRoute,
   GlucoseRoute: GlucoseRoute,
   HistoryRoute: HistoryRoute,
   InsulinRoute: InsulinRoute,
