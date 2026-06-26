@@ -1,5 +1,12 @@
 // Local storage helpers — client-only
 
+export type EmergencyContact = { name: string; phone: string };
+export type Inventory = {
+  units: number;
+  openedDate?: string; // ISO date
+  expirationDate?: string; // ISO date
+};
+
 export type Profile = {
   name: string;
   wakeTime: string;
@@ -8,6 +15,9 @@ export type Profile = {
   rangeMax: number;
   icr: number; // grams of carbs covered by 1U Lispro
   isf: number; // mg/dL drop per 1U Lispro
+  hydrationGoal?: number; // glasses/day, default 8
+  emergencyContact?: EmergencyContact;
+  inventory?: Inventory;
 };
 
 export type GlucoseEntry = {
