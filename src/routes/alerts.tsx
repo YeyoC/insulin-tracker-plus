@@ -7,6 +7,7 @@ import {
   type AlertRecord,
   type AlertResponse,
 } from "@/lib/alerts";
+import { t, locale, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/alerts")({
   head: () => ({ meta: [{ title: "Alerts — InsulinaApp" }] }),
@@ -20,13 +21,8 @@ const LEVEL_STYLES: Record<AlertRecord["level"], string> = {
   blue: "border-l-4 border-l-sky-600 bg-sky-50",
 };
 
-const RESPONSE_LABEL: Record<AlertResponse, string> = {
-  ignored: "I ignored it",
-  ate: "I ate something",
-  checked: "I checked my glucose",
-};
-
 function AlertsPage() {
+  const lang = useLang();
   const [list, setList] = useState<AlertRecord[]>([]);
 
   useEffect(() => {
@@ -36,13 +32,15 @@ function AlertsPage() {
     return () => window.removeEventListener("insulina:update", refresh);
   }, []);
 
+  const responses: AlertResponse[] = ["ignored", "ate", "checked"];
+
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">Alerts today</h1>
+      <h1 className="text-2xl font-bold text-primary">{t("alerts.title")}</h1>
       <ul className="mt-5 space-y-3">
         {list.length === 0 && (
           <li className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
-            No alerts today.
+            {t("alerts.empty")}
           </li>
         )}
         {list.map((a) => (
@@ -50,21 +48,21 @@ function AlertsPage() {
             <div className="flex items-baseline justify-between">
               <span className="text-xs font-semibold uppercase tracking-wide">
                 {a.level}
-                {a.resent && <span className="ml-2 text-muted-foreground">· resent</span>}
+                {a.resent && <span className="ml-2 text-muted-foreground">{t("alerts.resent")}</span>}
               </span>
               <span className="text-xs text-muted-foreground">
-                {new Date(a.firedAt).toLocaleTimeString(undefined, {
+                {new Date(a.firedAt).toLocaleTimeString(locale(lang), {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
               </span>
             </div>
-            <p className="mt-1 text-sm text-foreground">{a.message}</p>
+            <p className="mt-1 text-sm text-foreground">{t(a.messageKey, a.messageParams)}</p>
             {a.response ? (
               <p className="mt-2 text-xs text-muted-foreground">
-                Response: {RESPONSE_LABEL[a.response]}
+                {t("alerts.response")} {t(`alerts.resp.${a.response}`)}
                 {a.respondedAt
-                  ? ` · ${new Date(a.respondedAt).toLocaleTimeString(undefined, {
+                  ? ` · ${new Date(a.respondedAt).toLocaleTimeString(locale(lang), {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}`
@@ -72,13 +70,13 @@ function AlertsPage() {
               </p>
             ) : (
               <div className="mt-3 flex flex-wrap gap-2">
-                {(Object.keys(RESPONSE_LABEL) as AlertResponse[]).map((r) => (
+                {responses.map((r) => (
                   <button
                     key={r}
                     onClick={() => respondToAlert(a.id, r)}
                     className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
                   >
-                    {RESPONSE_LABEL[r]}
+                    {t(`alerts.resp.${r}`)}
                   </button>
                 ))}
               </div>

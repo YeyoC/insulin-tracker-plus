@@ -11,6 +11,7 @@ import {
   totalCarbs,
   type MealFood,
 } from "@/lib/storage";
+import { t, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/meals/new")({
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
@@ -24,6 +25,7 @@ function nowLocalInput() {
 }
 
 function NewMealPage() {
+  useLang();
   const navigate = useNavigate();
   const [time, setTime] = useState(nowLocalInput());
   const [notes, setNotes] = useState("");
@@ -46,10 +48,10 @@ function NewMealPage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">New meal</h1>
+      <h1 className="text-2xl font-bold text-primary">{t("newMeal.title")}</h1>
       <form onSubmit={submit} className="mt-6 space-y-5">
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">Meal time</span>
+          <span className="mb-1.5 block text-sm font-medium">{t("newMeal.mealTime")}</span>
           <input
             type="datetime-local"
             value={time}
@@ -60,19 +62,19 @@ function NewMealPage() {
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium">Foods</span>
+            <span className="text-sm font-medium">{t("newMeal.foods")}</span>
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
               className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground"
             >
-              <Plus className="size-4" /> Add food
+              <Plus className="size-4" /> {t("newMeal.addFood")}
             </button>
           </div>
 
           {foods.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-              No foods yet — tap "Add food" to begin.
+              {t("newMeal.empty")}
             </p>
           ) : (
             <ul className="space-y-2">
@@ -85,7 +87,7 @@ function NewMealPage() {
                     <div className="flex-1">
                       <p className="font-medium">{f.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {f.carbsPer100g}g carbs / 100g
+                        {t("newMeal.carbsPer100", { n: f.carbsPer100g })}
                       </p>
                     </div>
                     <button
@@ -94,14 +96,14 @@ function NewMealPage() {
                         setFoods((prev) => prev.filter((_, i) => i !== idx))
                       }
                       className="text-muted-foreground hover:text-destructive"
-                      aria-label="Remove"
+                      aria-label={t("common.delete")}
                     >
                       <Trash2 className="size-4" />
                     </button>
                   </div>
                   <div className="mt-2 flex items-center gap-3">
                     <label className="flex flex-1 items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Grams</span>
+                      <span className="text-xs text-muted-foreground">{t("newMeal.grams")}</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -129,7 +131,7 @@ function NewMealPage() {
         {foods.length > 0 && (
           <div className="rounded-xl bg-primary p-4 text-primary-foreground">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm opacity-90">Total carbs</span>
+              <span className="text-sm opacity-90">{t("newMeal.totalCarbs")}</span>
               <span className="text-3xl font-bold">
                 {Math.round(total)}
                 <span className="ml-1 text-base font-normal opacity-90">g</span>
@@ -139,13 +141,13 @@ function NewMealPage() {
         )}
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">Notes (optional)</span>
+          <span className="mb-1.5 block text-sm font-medium">{t("common.notes")}</span>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
             className="input"
-            placeholder="e.g. ate quickly, reheated rice"
+            placeholder={t("newMeal.notesPh")}
           />
         </label>
 
@@ -154,7 +156,7 @@ function NewMealPage() {
           disabled={foods.length === 0}
           className="btn-primary w-full disabled:opacity-50"
         >
-          Save meal
+          {t("newMeal.save")}
         </button>
       </form>
 
@@ -203,7 +205,7 @@ function FoodPicker({
     const ctrl = new AbortController();
     ctrlRef.current = ctrl;
     setLoading(true);
-    const t = setTimeout(async () => {
+    const tt = setTimeout(async () => {
       try {
         const r = await searchFoods(q, ctrl.signal);
         if (!ctrl.signal.aborted) setResults(r);
@@ -212,7 +214,7 @@ function FoodPicker({
       }
     }, 300);
     return () => {
-      clearTimeout(t);
+      clearTimeout(tt);
       ctrl.abort();
     };
   }, [query]);
@@ -238,8 +240,8 @@ function FoodPicker({
     <div className="fixed inset-0 z-50 flex items-end bg-black/40 sm:items-center sm:justify-center">
       <div className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-lg font-semibold">Add food</h2>
-          <button onClick={onClose} aria-label="Close" className="text-muted-foreground">
+          <h2 className="text-lg font-semibold">{t("newMeal.addFood")}</h2>
+          <button onClick={onClose} aria-label={t("common.close")} className="text-muted-foreground">
             <X className="size-5" />
           </button>
         </div>
@@ -249,11 +251,11 @@ function FoodPicker({
             <div className="rounded-xl border border-border bg-card p-4">
               <p className="font-semibold">{selected.name}</p>
               <p className="text-sm text-muted-foreground">
-                {selected.carbsPer100g}g carbs / 100g
+                {t("newMeal.carbsPer100", { n: selected.carbsPer100g })}
               </p>
             </div>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium">Grams consumed</span>
+              <span className="mb-1.5 block text-sm font-medium">{t("newMeal.gramsConsumed")}</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -267,7 +269,7 @@ function FoodPicker({
               />
             </label>
             <div className="rounded-lg bg-accent p-3 text-center text-accent-foreground">
-              <span className="text-sm">Estimated carbs: </span>
+              <span className="text-sm">{t("newMeal.estCarbs")} </span>
               <span className="text-xl font-bold">
                 {Math.round(
                   ((typeof grams === "number" ? grams : 0) * selected.carbsPer100g) /
@@ -281,17 +283,17 @@ function FoodPicker({
                 onClick={() => setSelected(null)}
                 className="flex-1 rounded-lg border border-border px-4 py-3 font-medium"
               >
-                Back
+                {t("common.back")}
               </button>
               <button onClick={confirm} className="btn-primary flex-1">
-                Add to meal
+                {t("newMeal.addToMeal")}
               </button>
             </div>
           </div>
         ) : manualOpen ? (
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium">Food name</span>
+              <span className="mb-1.5 block text-sm font-medium">{t("newMeal.foodName")}</span>
               <input
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
@@ -301,7 +303,7 @@ function FoodPicker({
             </label>
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium">
-                Carbohydrates per 100g
+                {t("newMeal.carbsPer100Label")}
               </span>
               <input
                 type="number"
@@ -318,10 +320,10 @@ function FoodPicker({
                 onClick={() => setManualOpen(false)}
                 className="flex-1 rounded-lg border border-border px-4 py-3 font-medium"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button onClick={addManual} className="btn-primary flex-1">
-                Continue
+                {t("common.continue")}
               </button>
             </div>
           </div>
@@ -333,7 +335,7 @@ function FoodPicker({
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search foods..."
+                  placeholder={t("newMeal.searchPh")}
                   className="input pl-9"
                   autoFocus
                 />
@@ -344,7 +346,7 @@ function FoodPicker({
               {!query && frequent.length > 0 && (
                 <section className="mb-4">
                   <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Frequent foods
+                    {t("newMeal.frequent")}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {frequent.map((f) => (
@@ -368,13 +370,13 @@ function FoodPicker({
 
               {loading && (
                 <p className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" /> Searching…
+                  <Loader2 className="size-4 animate-spin" /> {t("newMeal.searching")}
                 </p>
               )}
 
               {!loading && query && results.length === 0 && (
                 <p className="py-6 text-center text-sm text-muted-foreground">
-                  No results found.
+                  {t("newMeal.noResults")}
                 </p>
               )}
 
@@ -388,7 +390,7 @@ function FoodPicker({
                       <div className="min-w-0 flex-1 pr-3">
                         <p className="truncate font-medium">{r.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {r.carbsPer100g}g carbs / 100g
+                          {t("newMeal.carbsPer100", { n: r.carbsPer100g })}
                           {r.source === "off" ? " · Open Food Facts" : ""}
                         </p>
                       </div>
@@ -402,7 +404,7 @@ function FoodPicker({
                 onClick={() => setManualOpen(true)}
                 className="mt-4 w-full rounded-lg border border-dashed border-border p-3 text-sm font-medium text-primary hover:bg-accent"
               >
-                + Add food manually
+                {t("newMeal.addManual")}
               </button>
             </div>
           </>

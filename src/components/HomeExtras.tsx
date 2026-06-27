@@ -12,6 +12,7 @@ import {
   type NocturnalSymptom,
   type SpecialDayType,
 } from "@/lib/storage";
+import { t, useLang } from "@/lib/i18n";
 
 const SPECIAL_TYPES: SpecialDayType[] = [
   "Party/social event",
@@ -24,6 +25,7 @@ const SPECIAL_TYPES: SpecialDayType[] = [
 const SYMPTOMS: NocturnalSymptom[] = ["Sweating", "Nightmares", "Headache"];
 
 export function HomeExtras() {
+  useLang();
   const [glasses, setGlasses] = useState(0);
   const [goal, setGoal] = useState(8);
   const [special, setSpecial] = useState(getSpecialDay());
@@ -56,9 +58,9 @@ export function HomeExtras() {
     <div className="mt-6 space-y-4">
       {needNocturnal && (
         <div className="rounded-xl border border-secondary/40 bg-accent p-4">
-          <p className="text-sm font-semibold text-primary">Good morning check</p>
+          <p className="text-sm font-semibold text-primary">{t("extras.morningTitle")}</p>
           <p className="mt-1 text-sm text-foreground">
-            Did you have any of these symptoms last night?
+            {t("extras.morningQ")}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {SYMPTOMS.map((s) => (
@@ -71,17 +73,17 @@ export function HomeExtras() {
                     : "border-border bg-card"
                 }`}
               >
-                {s}
+                {t(`extras.symptom.${s}`)}
               </button>
             ))}
           </div>
           <div className="mt-3 flex gap-2">
-            <button onClick={submitNocturnal} className="btn-primary text-sm flex-1">Save</button>
+            <button onClick={submitNocturnal} className="btn-primary text-sm flex-1">{t("common.save")}</button>
             <button
               onClick={() => { saveNocturnal([]); setNeedNocturnal(false); }}
               className="rounded-md border border-border px-3 py-2 text-sm"
             >
-              None
+              {t("extras.none")}
             </button>
           </div>
         </div>
@@ -89,36 +91,36 @@ export function HomeExtras() {
 
       {special.active && (
         <div className="rounded-xl border-l-4 border-l-amber-500 bg-amber-50 p-3 text-sm text-amber-900">
-          <p className="font-semibold">Special day mode on{special.type ? ` · ${special.type}` : ""}.</p>
-          <p>The app will check in more often today.</p>
+          <p className="font-semibold">{t("extras.specialOn", { type: special.type ? ` · ${t(`special.${special.type}`)}` : "" })}</p>
+          <p>{t("extras.specialDesc")}</p>
         </div>
       )}
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hydration</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("extras.hydration")}</p>
             <p className="mt-1 text-2xl font-bold text-primary">
-              {glasses} <span className="text-sm font-normal text-muted-foreground">/ {goal} glasses</span>
+              {glasses} <span className="text-sm font-normal text-muted-foreground">{t("extras.glassesOf", { n: goal })}</span>
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
-              aria-label="Remove glass"
+              aria-label="−"
               onClick={() => removeGlass()}
               className="grid size-10 place-items-center rounded-full border border-border"
             >
               <Minus className="size-4" />
             </button>
             <button
-              aria-label="Add glass"
+              aria-label="+1"
               onClick={() => addGlass()}
               className="grid size-12 place-items-center rounded-full bg-secondary text-secondary-foreground"
             >
               <Droplet className="size-5" />
             </button>
             <button
-              aria-label="Add glass plus"
+              aria-label="+"
               onClick={() => addGlass()}
               className="grid size-10 place-items-center rounded-full border border-border"
             >
@@ -132,7 +134,7 @@ export function HomeExtras() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <PartyPopper className="size-5 text-secondary" />
-            <p className="text-sm font-semibold">Special day mode</p>
+            <p className="text-sm font-semibold">{t("extras.specialTitle")}</p>
           </div>
           <label className="relative inline-flex cursor-pointer items-center">
             <input
@@ -154,18 +156,18 @@ export function HomeExtras() {
 
         {showSpecialPicker && !special.active && (
           <div className="mt-3 space-y-2">
-            <p className="text-xs text-muted-foreground">Pick a type:</p>
+            <p className="text-xs text-muted-foreground">{t("extras.pickType")}</p>
             <div className="flex flex-wrap gap-2">
-              {SPECIAL_TYPES.map((t) => (
+              {SPECIAL_TYPES.map((tp) => (
                 <button
-                  key={t}
+                  key={tp}
                   onClick={() => {
-                    setSpecialDay({ active: true, type: t, startedAt: new Date().toISOString() });
+                    setSpecialDay({ active: true, type: tp, startedAt: new Date().toISOString() });
                     setShowSpecialPicker(false);
                   }}
                   className="rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent"
                 >
-                  {t}
+                  {t(`special.${tp}`)}
                 </button>
               ))}
             </div>

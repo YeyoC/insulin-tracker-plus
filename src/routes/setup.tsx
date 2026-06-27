@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { setProfile } from "@/lib/storage";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { t, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/setup")({
   head: () => ({ meta: [{ title: "Setup — InsulinaApp" }] }),
@@ -8,6 +10,7 @@ export const Route = createFileRoute("/setup")({
 });
 
 function SetupPage() {
+  useLang();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [wakeTime, setWakeTime] = useState("07:00");
@@ -27,32 +30,37 @@ function SetupPage() {
   return (
     <div className="min-h-screen bg-background px-5 py-10">
       <div className="mx-auto max-w-md">
-        <h1 className="text-3xl font-bold text-primary">Welcome</h1>
-        <p className="mt-1 text-muted-foreground">Let's set up your profile.</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-primary">{t("setup.welcome")}</h1>
+            <p className="mt-1 text-muted-foreground">{t("setup.subtitle")}</p>
+          </div>
+          <LanguageToggle />
+        </div>
 
         <form onSubmit={submit} className="mt-8 space-y-5">
-          <Field label="Patient name">
-            <input value={name} onChange={(e) => setName(e.target.value)} required className="input" placeholder="Your name" />
+          <Field label={t("setup.name")}>
+            <input value={name} onChange={(e) => setName(e.target.value)} required className="input" placeholder={t("setup.namePlaceholder")} />
           </Field>
-          <Field label="Approximate wake-up time">
+          <Field label={t("setup.wakeTime")}>
             <input type="time" value={wakeTime} onChange={(e) => setWakeTime(e.target.value)} className="input" />
           </Field>
-          <Field label="Glucose target (mg/dL)">
+          <Field label={t("setup.target")}>
             <input type="number" value={target} onChange={(e) => setTarget(Number(e.target.value))} className="input" />
           </Field>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Range min"><input type="number" value={rangeMin} onChange={(e) => setRangeMin(Number(e.target.value))} className="input" /></Field>
-            <Field label="Range max"><input type="number" value={rangeMax} onChange={(e) => setRangeMax(Number(e.target.value))} className="input" /></Field>
+            <Field label={t("setup.rangeMin")}><input type="number" value={rangeMin} onChange={(e) => setRangeMin(Number(e.target.value))} className="input" /></Field>
+            <Field label={t("setup.rangeMax")}><input type="number" value={rangeMax} onChange={(e) => setRangeMax(Number(e.target.value))} className="input" /></Field>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="ICR (g carbs per 1U)">
+            <Field label={t("setup.icr")}>
               <input type="number" min={1} value={icr} onChange={(e) => setIcr(Number(e.target.value))} className="input" />
             </Field>
-            <Field label="ISF (mg/dL per 1U)">
+            <Field label={t("setup.isf")}>
               <input type="number" min={1} value={isf} onChange={(e) => setIsf(Number(e.target.value))} className="input" />
             </Field>
           </div>
-          <button type="submit" className="btn-primary w-full mt-4">Get started</button>
+          <button type="submit" className="btn-primary w-full mt-4">{t("setup.start")}</button>
         </form>
       </div>
     </div>

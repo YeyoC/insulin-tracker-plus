@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { getInsulin } from "@/lib/storage";
 import { activeWindows, activityAt, formatTime, type InsulinWindow } from "@/lib/insulin";
+import { t, useLang } from "@/lib/i18n";
 
 export function ActiveInsulinBar() {
+  useLang();
   const [now, setNow] = useState<Date | null>(null);
   const [windows, setWindows] = useState<InsulinWindow[]>([]);
 
@@ -13,10 +15,10 @@ export function ActiveInsulinBar() {
       setWindows(activeWindows(getInsulin(), n));
     };
     refresh();
-    const t = setInterval(refresh, 30_000);
+    const tt = setInterval(refresh, 30_000);
     window.addEventListener("insulina:update", refresh);
     return () => {
-      clearInterval(t);
+      clearInterval(tt);
       window.removeEventListener("insulina:update", refresh);
     };
   }, []);
@@ -24,7 +26,7 @@ export function ActiveInsulinBar() {
   if (!now || windows.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-card/50 p-4 text-center text-sm text-muted-foreground">
-        No active insulin right now.
+        {t("home.noActiveInsulin")}
       </div>
     );
   }
@@ -40,7 +42,11 @@ export function ActiveInsulinBar() {
                 {w.profile.label} · {w.entry.units}U
               </span>
               <span className="text-xs text-muted-foreground">
-                peak {formatTime(w.peakStart)}–{formatTime(w.peakEnd)} · ends {formatTime(w.end)}
+                {t("active.peakEnds", {
+                  start: formatTime(w.peakStart),
+                  end: formatTime(w.peakEnd),
+                  endt: formatTime(w.end),
+                })}
               </span>
             </div>
             <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-muted">
@@ -49,7 +55,7 @@ export function ActiveInsulinBar() {
                 style={{ width: `${pct}%`, backgroundColor: w.profile.color }}
               />
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">{pct}% active</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("active.activePct", { n: pct })}</p>
           </div>
         );
       })}

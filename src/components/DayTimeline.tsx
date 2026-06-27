@@ -11,8 +11,10 @@ import {
   type Profile,
 } from "@/lib/storage";
 import { SwipeRow } from "./SwipeRow";
+import { t, locale, useLang } from "@/lib/i18n";
 
 export function DayTimeline({ profile }: { profile: Profile | null }) {
+  const lang = useLang();
   const [events, setEvents] = useState<TimelineEvent[]>([]);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export function DayTimeline({ profile }: { profile: Profile | null }) {
   if (events.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
-        No events logged today.
+        {t("home.noEventsToday")}
       </p>
     );
   }
@@ -35,7 +37,7 @@ export function DayTimeline({ profile }: { profile: Profile | null }) {
       {events.map((ev) => (
         <li key={`${ev.kind}-${ev.id}`}>
           <SwipeRow onDelete={() => onDelete(ev)}>
-            <Row event={ev} profile={profile} />
+            <Row event={ev} profile={profile} lang={lang} />
           </SwipeRow>
         </li>
       ))}
@@ -49,8 +51,8 @@ function onDelete(ev: TimelineEvent) {
   if (ev.kind === "meal") deleteMeal(ev.id);
 }
 
-function Row({ event, profile }: { event: TimelineEvent; profile: Profile | null }) {
-  const time = new Date(event.timestamp).toLocaleTimeString(undefined, {
+function Row({ event, profile, lang }: { event: TimelineEvent; profile: Profile | null; lang: string }) {
+  const time = new Date(event.timestamp).toLocaleTimeString(locale(lang as "es" | "en"), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -69,7 +71,7 @@ function Row({ event, profile }: { event: TimelineEvent; profile: Profile | null
           <p className="font-semibold">
             {g.value} <span className="text-xs font-normal text-muted-foreground">mg/dL</span>
           </p>
-          <p className="text-xs text-muted-foreground">{g.moment}</p>
+          <p className="text-xs text-muted-foreground">{t(`moment.${g.moment}`)}</p>
         </div>
         <span className="text-xs text-muted-foreground">{time}</span>
       </div>
@@ -87,7 +89,7 @@ function Row({ event, profile }: { event: TimelineEvent; profile: Profile | null
           <p className="font-semibold">
             {i.type} · {i.units}U
           </p>
-          <p className="text-xs text-muted-foreground">{i.site}</p>
+          <p className="text-xs text-muted-foreground">{t(`site.${i.site}`)}</p>
         </div>
         <span className="text-xs text-muted-foreground">{time}</span>
       </div>
@@ -101,7 +103,7 @@ function Row({ event, profile }: { event: TimelineEvent; profile: Profile | null
         <Utensils className="size-5 text-primary" />
       </IconBubble>
       <div className="min-w-0 flex-1">
-        <p className="font-semibold">{Math.round(totalCarbs(m.foods))}g carbs</p>
+        <p className="font-semibold">{Math.round(totalCarbs(m.foods))}{t("meals.carbsUnit")}</p>
         <p className="truncate text-xs text-muted-foreground">
           {m.foods.map((f) => f.name).join(", ")}
         </p>

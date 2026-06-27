@@ -1,6 +1,5 @@
 import {
   ResponsiveContainer,
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -11,6 +10,7 @@ import {
   ComposedChart,
 } from "recharts";
 import type { GlucoseEntry } from "@/lib/storage";
+import { t, locale, useLang } from "@/lib/i18n";
 
 const colorFor = (moment: GlucoseEntry["moment"]) =>
   moment === "Fasting" ? "#1A6B9A" : moment === "Post-meal" ? "#E89B3C" : "#8A8A8A";
@@ -24,6 +24,7 @@ export function GlucoseTrendChart({
   rangeMin?: number;
   rangeMax?: number;
 }) {
+  const lang = useLang();
   const data = [...entries]
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     .map((e) => ({
@@ -36,13 +37,13 @@ export function GlucoseTrendChart({
   if (data.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
-        No glucose readings in this period.
+        {t("history.noGlucoseChart")}
       </div>
     );
   }
 
-  const fmtDate = (t: number) =>
-    new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const fmtDate = (tt: number) =>
+    new Date(tt).toLocaleDateString(locale(lang), { month: "short", day: "numeric" });
 
   return (
     <div className="rounded-xl border border-border bg-card p-3">
@@ -64,8 +65,8 @@ export function GlucoseTrendChart({
               stroke="hsl(var(--muted-foreground))"
             />
             <Tooltip
-              labelFormatter={(t) => new Date(Number(t)).toLocaleString()}
-              formatter={(v: number, _n, p) => [`${v} mg/dL`, p.payload.moment]}
+              labelFormatter={(tt) => new Date(Number(tt)).toLocaleString(locale(lang))}
+              formatter={(v: number, _n, p) => [`${v} mg/dL`, t(`moment.${p.payload.moment}`)]}
               contentStyle={{ fontSize: 12 }}
             />
             <ReferenceLine y={rangeMin} stroke="#2BAE66" strokeDasharray="4 4" />
@@ -83,10 +84,10 @@ export function GlucoseTrendChart({
         </ResponsiveContainer>
       </div>
       <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <LegendDot color="#1A6B9A" label="Fasting" />
-        <LegendDot color="#E89B3C" label="Post-meal" />
-        <LegendDot color="#8A8A8A" label="Other" />
-        <LegendDot color="#2BAE66" label={`Range ${rangeMin}-${rangeMax}`} dashed />
+        <LegendDot color="#1A6B9A" label={t("history.legend.fasting")} />
+        <LegendDot color="#E89B3C" label={t("history.legend.postMeal")} />
+        <LegendDot color="#8A8A8A" label={t("history.legend.other")} />
+        <LegendDot color="#2BAE66" label={t("history.legend.range", { min: rangeMin, max: rangeMax })} dashed />
       </div>
     </div>
   );

@@ -12,7 +12,6 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import {
   type Period,
-  periodLabel,
   filterByPeriod,
   glucoseStats,
   avgDailyInsulin,
@@ -24,6 +23,7 @@ import {
 import { GlucoseTrendChart } from "@/components/GlucoseTrendChart";
 import { InjectionSiteMap } from "@/components/InjectionSiteMap";
 import { exportReport } from "@/lib/exportPdf";
+import { t, locale, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/history")({
   head: () => ({ meta: [{ title: "History — InsulinaApp" }] }),
@@ -33,6 +33,7 @@ export const Route = createFileRoute("/history")({
 type Tab = "stats" | "glucose" | "insulin";
 
 function HistoryPage() {
+  const lang = useLang();
   const { profile } = useProfile();
   const [tab, setTab] = useState<Tab>("stats");
   const [period, setPeriod] = useState<Period>("week");
@@ -64,18 +65,18 @@ function HistoryPage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">History</h1>
+      <h1 className="text-2xl font-bold text-primary">{t("history.title")}</h1>
 
       <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-muted p-1">
-        {(["stats", "glucose", "insulin"] as Tab[]).map((t) => (
+        {(["stats", "glucose", "insulin"] as Tab[]).map((tp) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`rounded-md py-2 text-sm font-medium capitalize transition-colors ${
-              tab === t ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
+            key={tp}
+            onClick={() => setTab(tp)}
+            className={`rounded-md py-2 text-sm font-medium transition-colors ${
+              tab === tp ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
             }`}
           >
-            {t}
+            {t(`history.tab.${tp}`)}
           </button>
         ))}
       </div>
@@ -83,7 +84,7 @@ function HistoryPage() {
       {tab === "stats" && (
         <div className="mt-4 space-y-4">
           <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted p-1">
-            {(Object.keys(periodLabel) as Period[]).map((p) => (
+            {(["week", "2weeks", "month"] as Period[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
@@ -91,7 +92,7 @@ function HistoryPage() {
                   period === p ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
                 }`}
               >
-                {periodLabel[p]}
+                {t(`history.period.${p}`)}
               </button>
             ))}
           </div>
@@ -100,47 +101,47 @@ function HistoryPage() {
             <PatternNote
               icon={<AlertTriangle className="size-4" />}
               tone="warn"
-              text={`Your fasting glucose has been high for ${fastingStreak.days.length} consecutive days. Consider mentioning it to your doctor.`}
+              text={t("history.fastingStreak", { n: fastingStreak.days.length })}
             />
           )}
           {nocturnal.length >= 2 && (
             <PatternNote
               icon={<Moon className="size-4" />}
               tone="danger"
-              text={`Nocturnal hypoglycemia detected ${nocturnal.length} times (10pm–7am). Please review with your doctor.`}
+              text={t("history.nocturnal", { n: nocturnal.length })}
             />
           )}
 
           <div className="grid grid-cols-2 gap-2">
-            <StatCard label="Overall avg" value={stats.overallAvg} unit="mg/dL" />
-            <StatCard label="Fasting avg" value={stats.fastingAvg} unit="mg/dL" />
-            <StatCard label="Post-meal avg" value={stats.postMealAvg} unit="mg/dL" />
+            <StatCard label={t("history.overallAvg")} value={stats.overallAvg} unit="mg/dL" />
+            <StatCard label={t("history.fastingAvg")} value={stats.fastingAvg} unit="mg/dL" />
+            <StatCard label={t("history.postMealAvg")} value={stats.postMealAvg} unit="mg/dL" />
             <StatCard
-              label="Time in range"
+              label={t("history.tir")}
               value={stats.inRangePct}
               unit="%"
               tone="ok"
             />
             <StatCard
-              label="Below 70"
+              label={t("history.below")}
               value={stats.belowPct}
               unit="%"
-              sub={`${stats.below} times`}
+              sub={t("history.times", { n: stats.below })}
               tone="danger"
             />
             <StatCard
-              label="Above 180"
+              label={t("history.above")}
               value={stats.abovePct}
               unit="%"
-              sub={`${stats.above} times`}
+              sub={t("history.times", { n: stats.above })}
               tone="warn"
             />
-            <StatCard label="Avg daily NPH" value={ins.nph} unit="U" decimals={1} />
-            <StatCard label="Avg daily Lispro" value={ins.lispro} unit="U" decimals={1} />
+            <StatCard label={t("history.avgNph")} value={ins.nph} unit="U" decimals={1} />
+            <StatCard label={t("history.avgLispro")} value={ins.lispro} unit="U" decimals={1} />
           </div>
 
           <section>
-            <h2 className="mb-2 text-sm font-semibold text-primary">Glucose trend</h2>
+            <h2 className="mb-2 text-sm font-semibold text-primary">{t("history.trend")}</h2>
             <GlucoseTrendChart
               entries={periodGlucose}
               rangeMin={profile?.rangeMin ?? 70}
@@ -149,7 +150,7 @@ function HistoryPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-sm font-semibold text-primary">Injection sites</h2>
+            <h2 className="mb-2 text-sm font-semibold text-primary">{t("history.sites")}</h2>
             <InjectionSiteMap usage={usage} mostUsed={topSite} />
           </section>
 
@@ -165,7 +166,7 @@ function HistoryPage() {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow"
           >
             <Download className="size-4" />
-            Export PDF for my doctor
+            {t("history.exportPdf")}
           </button>
         </div>
       )}
@@ -173,7 +174,7 @@ function HistoryPage() {
       {tab === "glucose" && (
         <ul className="mt-5 space-y-2">
           {glucose.length === 0 ? (
-            <Empty label="No glucose entries yet." />
+            <Empty label={t("history.noGlucose")} />
           ) : (
             glucose.map((g) => {
               const s = glucoseStatus(
@@ -198,7 +199,7 @@ function HistoryPage() {
                         </span>
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(g.timestamp).toLocaleString(undefined, {
+                        {new Date(g.timestamp).toLocaleString(locale(lang), {
                           day: "numeric",
                           month: "short",
                           hour: "2-digit",
@@ -206,7 +207,7 @@ function HistoryPage() {
                         })}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{g.moment}</p>
+                    <p className="text-sm text-muted-foreground">{t(`moment.${g.moment}`)}</p>
                     {g.notes && <p className="mt-1 text-sm">{g.notes}</p>}
                   </div>
                 </li>
@@ -219,7 +220,7 @@ function HistoryPage() {
       {tab === "insulin" && (
         <ul className="mt-5 space-y-2">
           {insulin.length === 0 ? (
-            <Empty label="No insulin entries yet." />
+            <Empty label={t("history.noInsulin")} />
           ) : (
             insulin.map((i) => (
               <li key={i.id} className="rounded-xl border border-border bg-card p-4">
@@ -228,7 +229,7 @@ function HistoryPage() {
                     {i.type} · {i.units}U
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(i.timestamp).toLocaleString(undefined, {
+                    {new Date(i.timestamp).toLocaleString(locale(lang), {
                       day: "numeric",
                       month: "short",
                       hour: "2-digit",
@@ -236,7 +237,7 @@ function HistoryPage() {
                     })}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">{i.site}</p>
+                <p className="text-sm text-muted-foreground">{t(`site.${i.site}`)}</p>
                 {i.notes && <p className="mt-1 text-sm">{i.notes}</p>}
               </li>
             ))

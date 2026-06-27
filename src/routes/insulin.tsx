@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { addInsulin, type InsulinEntry, type InsulinSite } from "@/lib/storage";
 import { useProfile } from "@/hooks/useProfile";
 import { calculateDose, DIFF_REASONS } from "@/lib/dose";
+import { t, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/insulin")({
   head: () => ({ meta: [{ title: "Log insulin — InsulinaApp" }] }),
@@ -21,6 +22,7 @@ function nowLocalInput() {
 }
 
 function InsulinPage() {
+  useLang();
   const navigate = useNavigate();
   const { profile } = useProfile();
   const [type, setType] = useState<InsulinEntry["type"]>("Lispro");
@@ -29,7 +31,6 @@ function InsulinPage() {
   const [time, setTime] = useState<string>(nowLocalInput());
   const [notes, setNotes] = useState("");
 
-  // Lispro calculator inputs
   const [mealCarbs, setMealCarbs] = useState<number | "">("");
   const [currentGlucose, setCurrentGlucose] = useState<number | "">("");
   const [reason, setReason] = useState<string>("");
@@ -73,24 +74,24 @@ function InsulinPage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">Log insulin</h1>
+      <h1 className="text-2xl font-bold text-primary">{t("insulin.title")}</h1>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
         <div>
-          <span className="mb-2 block text-sm font-medium">Type</span>
+          <span className="mb-2 block text-sm font-medium">{t("insulin.type")}</span>
           <div className="grid grid-cols-2 gap-2">
-            {(["NPH", "Lispro"] as const).map((t) => (
+            {(["NPH", "Lispro"] as const).map((tp) => (
               <button
-                key={t}
+                key={tp}
                 type="button"
-                onClick={() => setType(t)}
+                onClick={() => setType(tp)}
                 className={`rounded-lg border px-3 py-4 text-base font-semibold transition-colors ${
-                  type === t
+                  type === tp
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-card hover:bg-accent"
                 }`}
               >
-                {t}
+                {tp}
               </button>
             ))}
           </div>
@@ -99,11 +100,11 @@ function InsulinPage() {
         {type === "Lispro" && (
           <section className="rounded-xl border border-border bg-card p-4 space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Dose calculator
+              {t("insulin.calculator")}
             </h2>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">Meal carbs (g)</span>
+                <span className="mb-1.5 block text-sm font-medium">{t("insulin.mealCarbs")}</span>
                 <input
                   type="number" inputMode="decimal" min={0}
                   value={mealCarbs}
@@ -113,7 +114,7 @@ function InsulinPage() {
                 />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">Current glucose</span>
+                <span className="mb-1.5 block text-sm font-medium">{t("insulin.currentGlucose")}</span>
                 <input
                   type="number" inputMode="numeric" min={0}
                   value={currentGlucose}
@@ -129,21 +130,21 @@ function InsulinPage() {
             {breakdown && (
               <div className="rounded-lg bg-accent p-4">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Recommended dose
+                  {t("insulin.recommendedDose")}
                 </p>
                 <p className="mt-1 text-4xl font-bold text-primary">
                   {breakdown.totalDose}
                   <span className="ml-1 text-base font-normal text-muted-foreground">U</span>
                 </p>
                 <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  <li>Carb dose: {breakdown.carbDose.toFixed(1)}U</li>
-                  <li>Correction: {breakdown.correctionDose.toFixed(1)}U</li>
-                  <li>Base: {breakdown.baseDose.toFixed(1)}U</li>
+                  <li>{t("insulin.carbDose")}: {breakdown.carbDose.toFixed(1)}U</li>
+                  <li>{t("insulin.correction")}: {breakdown.correctionDose.toFixed(1)}U</li>
+                  <li>{t("insulin.base")}: {breakdown.baseDose.toFixed(1)}U</li>
                 </ul>
                 {breakdown.adjustments.length > 0 && (
                   <ul className="mt-2 space-y-1 text-xs font-medium text-secondary">
                     {breakdown.adjustments.map((a, i) => (
-                      <li key={i}>• {a.reason}</li>
+                      <li key={i}>• {t(a.reasonKey, a.reasonParams)}</li>
                     ))}
                   </ul>
                 )}
@@ -151,14 +152,14 @@ function InsulinPage() {
             )}
 
             <p className="text-xs text-muted-foreground italic">
-              These suggestions are for reference only. Always consult your doctor.
+              {t("insulin.legal")}
             </p>
           </section>
         )}
 
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium">
-            Units actually injected
+            {t("insulin.actualUnits")}
           </span>
           <input
             type="number" inputMode="decimal" step={0.5} min={0.5}
@@ -166,11 +167,11 @@ function InsulinPage() {
             onChange={(e) => setUnits(e.target.value === "" ? "" : Number(e.target.value))}
             required
             className="input text-2xl font-semibold"
-            placeholder="e.g. 6"
+            placeholder={t("insulin.actualPh")}
           />
           {recommended !== undefined && (
             <span className="mt-1 block text-xs text-muted-foreground">
-              Recommended: {recommended}U
+              {t("insulin.recommended", { n: recommended })}
             </span>
           )}
         </label>
@@ -178,7 +179,7 @@ function InsulinPage() {
         {needsReason && (
           <div className="rounded-lg border border-warning/40 bg-warning/10 p-4 space-y-3">
             <p className="text-sm font-medium">
-              Your dose differs from the recommendation. Why?
+              {t("insulin.differs")}
             </p>
             <select
               required
@@ -186,16 +187,16 @@ function InsulinPage() {
               onChange={(e) => setReason(e.target.value)}
               className="input"
             >
-              <option value="">Select a reason…</option>
+              <option value="">{t("insulin.selectReason")}</option>
               {DIFF_REASONS.map((r) => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>{t(`reason.${r}`)}</option>
               ))}
             </select>
             {reason === "Other (specify)" && (
               <input
                 value={reasonOther}
                 onChange={(e) => setReasonOther(e.target.value)}
-                placeholder="Specify reason"
+                placeholder={t("insulin.specifyReason")}
                 className="input"
               />
             )}
@@ -203,7 +204,7 @@ function InsulinPage() {
         )}
 
         <div>
-          <span className="mb-2 block text-sm font-medium">Injection site</span>
+          <span className="mb-2 block text-sm font-medium">{t("insulin.site")}</span>
           <div className="grid grid-cols-2 gap-2">
             {sites.map((s) => (
               <button
@@ -216,14 +217,14 @@ function InsulinPage() {
                     : "border-border bg-card hover:bg-accent"
                 }`}
               >
-                {s}
+                {t(`site.${s}`)}
               </button>
             ))}
           </div>
         </div>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">Time</span>
+          <span className="mb-1.5 block text-sm font-medium">{t("common.time")}</span>
           <input
             type="datetime-local"
             value={time}
@@ -233,11 +234,11 @@ function InsulinPage() {
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">Notes (optional)</span>
+          <span className="mb-1.5 block text-sm font-medium">{t("common.notes")}</span>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="input" />
         </label>
 
-        <button type="submit" className="btn-primary w-full">Save</button>
+        <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
       </form>
     </AppShell>
   );

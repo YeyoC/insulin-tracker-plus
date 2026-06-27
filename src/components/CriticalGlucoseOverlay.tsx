@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
 import { getAlerts } from "@/lib/alerts";
 import { getGlucose, getProfile } from "@/lib/storage";
+import { t, useLang } from "@/lib/i18n";
 
-/** Full-screen red overlay when glucose < 55 and no alert response in 10 min. */
 export function CriticalGlucoseOverlay() {
+  useLang();
   const [show, setShow] = useState(false);
   const [contact, setContact] = useState<{ name: string; phone: string } | null>(null);
 
@@ -22,7 +23,6 @@ export function CriticalGlucoseOverlay() {
         setShow(false);
         return;
       }
-      // Check if any orange alert was responded to since glucose reading
       const responded = getAlerts().some(
         (a) =>
           a.level === "orange" &&
@@ -45,29 +45,29 @@ export function CriticalGlucoseOverlay() {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-red-700 px-6 text-center text-white">
       <div>
-        <p className="text-sm uppercase tracking-widest opacity-80">Critical glucose</p>
-        <h1 className="mt-2 text-4xl font-bold">Get help now</h1>
+        <p className="text-sm uppercase tracking-widest opacity-80">{t("critical.label")}</p>
+        <h1 className="mt-2 text-4xl font-bold">{t("critical.title")}</h1>
         {contact ? (
           <>
-            <p className="mt-6 text-xl">Call {contact.name}</p>
+            <p className="mt-6 text-xl">{t("critical.callName", { name: contact.name })}</p>
             <p className="text-2xl font-mono">{contact.phone}</p>
             <a
               href={`tel:${contact.phone}`}
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-lg font-bold text-red-700"
             >
-              <Phone className="size-5" /> Call now
+              <Phone className="size-5" /> {t("critical.callBtn")}
             </a>
           </>
         ) : (
           <p className="mt-6 text-base opacity-90">
-            Add an emergency contact in Settings.
+            {t("critical.noContact")}
           </p>
         )}
         <button
           onClick={() => setShow(false)}
           className="mt-8 block w-full text-sm underline opacity-80"
         >
-          Dismiss
+          {t("common.dismiss")}
         </button>
       </div>
     </div>
