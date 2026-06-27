@@ -12,10 +12,9 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useAlertsEngine } from "../hooks/useAlertsEngine";
+import { t } from "../lib/i18n";
 
 function NotFoundComponent() {
-  // Lazy import to avoid SSR window access
-  const { t } = require("../lib/i18n") as typeof import("../lib/i18n");
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
