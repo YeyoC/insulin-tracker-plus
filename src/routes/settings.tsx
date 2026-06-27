@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   averageDailyLispro,
   getProfile,
   setProfile,
   type Profile,
 } from "@/lib/storage";
+import { t, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — InsulinaApp" }] }),
@@ -18,6 +20,7 @@ function daysBetween(a: Date, b: Date) {
 }
 
 function SettingsPage() {
+  useLang();
   const navigate = useNavigate();
   const [p, setP] = useState<Profile | null>(null);
 
@@ -34,33 +37,39 @@ function SettingsPage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">Settings</h1>
+      <div className="flex items-start justify-between gap-3">
+        <h1 className="text-2xl font-bold text-primary">{t("settings.title")}</h1>
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-xs text-muted-foreground">{t("common.language")}</span>
+          <LanguageToggle />
+        </div>
+      </div>
       <form onSubmit={submit} className="mt-6 space-y-5">
-        <Field label="Patient name">
+        <Field label={t("setup.name")}>
           <input value={p.name} onChange={(e) => update("name", e.target.value)} className="input" />
         </Field>
-        <Field label="Wake-up time">
+        <Field label={t("setup.wakeTime")}>
           <input type="time" value={p.wakeTime} onChange={(e) => update("wakeTime", e.target.value)} className="input" />
         </Field>
-        <Field label="Glucose target (mg/dL)">
+        <Field label={t("setup.target")}>
           <input type="number" value={p.target} onChange={(e) => update("target", Number(e.target.value))} className="input" />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Range min"><input type="number" value={p.rangeMin} onChange={(e) => update("rangeMin", Number(e.target.value))} className="input" /></Field>
-          <Field label="Range max"><input type="number" value={p.rangeMax} onChange={(e) => update("rangeMax", Number(e.target.value))} className="input" /></Field>
+          <Field label={t("setup.rangeMin")}><input type="number" value={p.rangeMin} onChange={(e) => update("rangeMin", Number(e.target.value))} className="input" /></Field>
+          <Field label={t("setup.rangeMax")}><input type="number" value={p.rangeMax} onChange={(e) => update("rangeMax", Number(e.target.value))} className="input" /></Field>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="ICR (g carbs per 1U)">
+          <Field label={t("setup.icr")}>
             <input type="number" min={1} value={p.icr} onChange={(e) => update("icr", Number(e.target.value))} className="input" />
           </Field>
-          <Field label="ISF (mg/dL per 1U)">
+          <Field label={t("setup.isf")}>
             <input type="number" min={1} value={p.isf} onChange={(e) => update("isf", Number(e.target.value))} className="input" />
           </Field>
         </div>
 
         <fieldset className="rounded-xl border border-border p-4">
-          <legend className="px-2 text-sm font-semibold text-primary">Hydration</legend>
-          <Field label="Daily goal (glasses)">
+          <legend className="px-2 text-sm font-semibold text-primary">{t("settings.hydration")}</legend>
+          <Field label={t("settings.hydrationGoal")}>
             <input
               type="number"
               min={1}
@@ -72,8 +81,8 @@ function SettingsPage() {
         </fieldset>
 
         <fieldset className="rounded-xl border border-border p-4 space-y-4">
-          <legend className="px-2 text-sm font-semibold text-primary">Emergency contact</legend>
-          <Field label="Name">
+          <legend className="px-2 text-sm font-semibold text-primary">{t("settings.emergency")}</legend>
+          <Field label={t("settings.contactName")}>
             <input
               value={p.emergencyContact?.name ?? ""}
               onChange={(e) =>
@@ -85,7 +94,7 @@ function SettingsPage() {
               className="input"
             />
           </Field>
-          <Field label="Phone">
+          <Field label={t("settings.contactPhone")}>
             <input
               type="tel"
               value={p.emergencyContact?.phone ?? ""}
@@ -102,7 +111,7 @@ function SettingsPage() {
 
         <InventorySection profile={p} update={update} />
 
-        <button type="submit" className="btn-primary w-full">Save</button>
+        <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
       </form>
     </AppShell>
   );
@@ -133,8 +142,8 @@ function InventorySection({
 
   return (
     <fieldset className="rounded-xl border border-border p-4 space-y-4">
-      <legend className="px-2 text-sm font-semibold text-primary">Insulin inventory</legend>
-      <Field label="Remaining units in vial/pen">
+      <legend className="px-2 text-sm font-semibold text-primary">{t("settings.inventory")}</legend>
+      <Field label={t("settings.units")}>
         <input
           type="number"
           min={0}
@@ -143,7 +152,7 @@ function InventorySection({
           className="input"
         />
       </Field>
-      <Field label="Vial opened on">
+      <Field label={t("settings.openedDate")}>
         <input
           type="date"
           value={inv.openedDate ?? ""}
@@ -151,7 +160,7 @@ function InventorySection({
           className="input"
         />
       </Field>
-      <Field label="Expiration date">
+      <Field label={t("settings.expDate")}>
         <input
           type="date"
           value={inv.expirationDate ?? ""}
@@ -163,18 +172,18 @@ function InventorySection({
       <div className="space-y-2 text-sm">
         {daysRemaining !== null && (
           <p className="text-muted-foreground">
-            Estimated days remaining: <strong>{daysRemaining}</strong>{" "}
-            <span className="text-xs">(avg {avg.toFixed(1)}U/day Lispro)</span>
+            {t("settings.daysRemaining", { n: daysRemaining })}{" "}
+            <span className="text-xs">{t("settings.avgPerDay", { n: avg.toFixed(1) })}</span>
           </p>
         )}
         {openedWarn && (
           <p className="rounded-md bg-warning/15 px-3 py-2 text-warning-foreground">
-            ⚠ Vial has been open for more than 28 days.
+            {t("settings.warnOpened")}
           </p>
         )}
         {expWarn && (
           <p className="rounded-md bg-danger/15 px-3 py-2 text-danger">
-            ⚠ Expiration within 15 days.
+            {t("settings.warnExp")}
           </p>
         )}
       </div>

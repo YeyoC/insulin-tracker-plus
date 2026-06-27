@@ -12,6 +12,7 @@ import {
   type ExerciseType,
 } from "@/lib/storage";
 import { activeWindows } from "@/lib/insulin";
+import { t, locale, useLang } from "@/lib/i18n";
 
 const TYPES: ExerciseType[] = [
   "Weightlifting",
@@ -36,6 +37,7 @@ function localDateTimeValue(d: Date) {
 }
 
 function ExercisePage() {
+  const lang = useLang();
   const navigate = useNavigate();
   const [type, setType] = useState<ExerciseType>("Walking");
   const [duration, setDuration] = useState(30);
@@ -56,9 +58,7 @@ function ExercisePage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (intenseWithNph) {
-      const ok = window.confirm(
-        "Warning: NPH insulin is currently active. Intense exercise can cause hypoglycemia. Continue?",
-      );
+      const ok = window.confirm(t("exercise.confirm"));
       if (!ok) return;
     }
     addExercise({
@@ -76,73 +76,73 @@ function ExercisePage() {
   return (
     <AppShell>
       <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold text-primary">Exercise</h1>
+        <h1 className="text-2xl font-bold text-primary">{t("exercise.title")}</h1>
         <button onClick={() => navigate({ to: "/" })} className="text-sm text-secondary">
-          Skip
+          {t("common.skip")}
         </button>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Logging exercise is optional.
+        {t("exercise.optional")}
       </p>
 
       <form onSubmit={submit} className="mt-6 space-y-4">
-        <Field label="Type">
+        <Field label={t("exercise.type")}>
           <select className="input" value={type} onChange={(e) => setType(e.target.value as ExerciseType)}>
-            {TYPES.map((t) => <option key={t}>{t}</option>)}
+            {TYPES.map((tp) => <option key={tp} value={tp}>{t(`exerciseType.${tp}`)}</option>)}
           </select>
         </Field>
-        <Field label="Duration (minutes)">
+        <Field label={t("exercise.duration")}>
           <input type="number" min={1} className="input" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
         </Field>
-        <Field label="Intensity">
+        <Field label={t("exercise.intensity")}>
           <select className="input" value={intensity} onChange={(e) => setIntensity(e.target.value as ExerciseIntensity)}>
-            {INTENSITIES.map((t) => <option key={t}>{t}</option>)}
+            {INTENSITIES.map((tp) => <option key={tp} value={tp}>{t(`intensity.${tp}`)}</option>)}
           </select>
         </Field>
-        <Field label="Timing context">
+        <Field label={t("exercise.context")}>
           <select className="input" value={context} onChange={(e) => setContext(e.target.value as ExerciseContext)}>
-            {CONTEXTS.map((t) => <option key={t}>{t}</option>)}
+            {CONTEXTS.map((tp) => <option key={tp} value={tp}>{t(`ctx.${tp}`)}</option>)}
           </select>
         </Field>
-        <Field label="Time">
+        <Field label={t("common.time")}>
           <input type="datetime-local" className="input" value={when} onChange={(e) => setWhen(e.target.value)} />
         </Field>
-        <Field label="Notes (optional)">
+        <Field label={t("common.notes")}>
           <input className="input" value={notes} onChange={(e) => setNotes(e.target.value)} />
         </Field>
 
         {intenseWithNph && (
           <div className="rounded-xl border-l-4 border-l-red-600 bg-red-50 p-3 text-sm text-red-900">
-            ⚠ NPH is active. Intense exercise increases the risk of hypoglycemia.
+            {t("exercise.warn")}
           </div>
         )}
 
-        <button type="submit" className="btn-primary w-full">Save exercise</button>
+        <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
       </form>
 
       <h2 className="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Recent
+        {t("exercise.recent")}
       </h2>
       <ul className="space-y-2">
         {list.length === 0 && (
           <li className="rounded-xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
-            No exercise logged.
+            {t("exercise.empty")}
           </li>
         )}
         {list.slice(0, 10).map((e) => (
           <li key={e.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
             <div className="min-w-0">
-              <p className="font-semibold">{e.type} · {e.durationMin}min</p>
+              <p className="font-semibold">{t(`exerciseType.${e.type}`)} · {e.durationMin}min</p>
               <p className="text-xs text-muted-foreground">
-                {e.intensity} · {e.context} ·{" "}
-                {new Date(e.timestamp).toLocaleString(undefined, { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" })}
+                {t(`intensity.${e.intensity}`)} · {t(`ctx.${e.context}`)} ·{" "}
+                {new Date(e.timestamp).toLocaleString(locale(lang), { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" })}
               </p>
             </div>
             <button
               onClick={() => { deleteExercise(e.id); setList(getExercise()); }}
               className="text-xs text-danger hover:underline"
             >
-              Delete
+              {t("common.delete")}
             </button>
           </li>
         ))}

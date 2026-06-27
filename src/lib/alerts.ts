@@ -8,15 +8,17 @@ import {
   getSpecialDay,
 } from "./storage";
 import { PROFILES, windowFor, formatTime } from "./insulin";
+import { t } from "./i18n";
 
 export type AlertLevel = "red" | "orange" | "yellow" | "blue";
 export type AlertResponse = "ignored" | "ate" | "checked";
 
 export type AlertRecord = {
   id: string;
-  key: string; // dedupe key (level + source id)
+  key: string;
   level: AlertLevel;
-  message: string;
+  messageKey: string;
+  messageParams?: Record<string, string | number>;
   firedAt: string;
   response?: AlertResponse;
   respondedAt?: string;
@@ -51,8 +53,8 @@ export function alertsForDay(date: Date): AlertRecord[] {
   end.setDate(end.getDate() + 1);
   return read()
     .filter((a) => {
-      const t = new Date(a.firedAt).getTime();
-      return t >= start.getTime() && t < end.getTime();
+      const tt = new Date(a.firedAt).getTime();
+      return tt >= start.getTime() && tt < end.getTime();
     })
     .sort((a, b) => new Date(b.firedAt).getTime() - new Date(a.firedAt).getTime());
 }
@@ -65,19 +67,25 @@ export function respondToAlert(id: string, response: AlertResponse) {
   write(list);
 }
 
-function fire(key: string, level: AlertLevel, message: string) {
+function fire(
+  key: string,
+  level: AlertLevel,
+  messageKey: string,
+  messageParams?: Record<string, string | number>,
+) {
   const list = read();
-  if (list.some((a) => a.key === key)) return; // dedupe forever per key
+  if (list.some((a) => a.key === key)) return;
   const rec: AlertRecord = {
     id: crypto.randomUUID(),
     key,
     level,
-    message,
+    messageKey,
+    messageParams,
     firedAt: new Date().toISOString(),
   };
   list.unshift(rec);
   write(list);
-  notify(level, message);
+  notify(level, t(messageKey, messageParams));
 }
 
 function notify(level: AlertLevel, message: string) {
@@ -104,7 +112,6 @@ export async function requestNotificationPermission() {
 
 const MIN = 60_000;
 
-/** Evaluate state and fire alerts as needed. Idempotent (dedupes by key). */
 export function evaluateAlerts(now: Date = new Date()) {
   if (!isBrowser()) return;
   const insulin = getInsulin();
@@ -114,37 +121,25 @@ export function evaluateAlerts(now: Date = new Date()) {
   const lastMealAt = meals[0] ? new Date(meals[0].timestamp).getTime() : 0;
   const minsSinceMeal = (now.getTime() - lastMealAt) / MIN;
 
-  // RED — 30 min before NPH peak, no meal in past 2h
   for (const e of insulin) {
     if (e.type !== "NPH") continue;
     const w = windowFor(e);
     const minsToPeak = (w.peakStart.getTime() - now.getTime()) / MIN;
     if (minsToPeak <= 30 && minsToPeak >= 0 && minsSinceMeal > 120) {
-      fire(
-        `red:nph:${e.id}`,
-        "red",
-        `Your NPH peaks at ${formatTime(w.peakStart)}. Eat something now.`,
-      );
+      fire(`red:nph:${e.id}`, "red", "alertMsg.red.nphPeak", { time: formatTime(w.peakStart) });
     }
   }
 
-  // ORANGE — glucose < 70
   for (const g of glucose) {
     if (g.value < 70) {
-      fire(
-        `orange:glu:${g.id}`,
-        "orange",
-        "Low glucose. Take 15g of fast-acting sugar and recheck in 15 minutes.",
-      );
+      fire(`orange:glu:${g.id}`, "orange", "alertMsg.orange.low");
     }
   }
 
-  // YELLOW — 2h after a meal with Lispro nearby and no glucose check since meal
   for (const m of meals) {
     const mt = new Date(m.timestamp).getTime();
     const minsSince = (now.getTime() - mt) / MIN;
     if (minsSince < 120 || minsSince > 180) continue;
-    // Lispro logged within ±30 min of the meal
     const hasLispro = insulin.some((i) => {
       if (i.type !== "Lispro") return false;
       const diff = Math.abs(new Date(i.timestamp).getTime() - mt) / MIN;
@@ -153,81 +148,52 @@ export function evaluateAlerts(now: Date = new Date()) {
     if (!hasLispro) continue;
     const checked = glucose.some((g) => new Date(g.timestamp).getTime() > mt);
     if (checked) continue;
-    fire(
-      `yellow:meal:${m.id}`,
-      "yellow",
-      "2 hours since your meal. Good time to check your glucose.",
-    );
+    fire(`yellow:meal:${m.id}`, "yellow", "alertMsg.yellow.postMeal");
   }
 
-  // BLUE — NPH active and no meal in past 3h
   for (const e of insulin) {
     if (e.type !== "NPH") continue;
     const w = windowFor(e);
-    const t = now.getTime();
-    const active = t >= new Date(e.timestamp).getTime() && t < w.end.getTime();
+    const tt = now.getTime();
+    const active = tt >= new Date(e.timestamp).getTime() && tt < w.end.getTime();
     if (!active) continue;
     if (minsSinceMeal <= 180) continue;
-    // Hourly bucket key while NPH active
-    const bucket = Math.floor((t - new Date(e.timestamp).getTime()) / (60 * MIN));
+    const bucket = Math.floor((tt - new Date(e.timestamp).getTime()) / (60 * MIN));
     fire(
       `blue:nph:${e.id}:${bucket}`,
       "blue",
-      `NPH is active. We recommend eating something before ${formatTime(
-        new Date(t + 60 * MIN),
-      )}.`,
+      "alertMsg.blue.nphActive",
+      { time: formatTime(new Date(tt + 60 * MIN)) },
     );
   }
 
-  // POST-EXERCISE — 60 min after exercise, single alert per session
   for (const ex of getExercise()) {
     const mins = (now.getTime() - new Date(ex.timestamp).getTime()) / MIN;
     if (mins >= 60 && mins <= 75) {
-      fire(
-        `exercise:${ex.id}`,
-        "yellow",
-        "Check your glucose. Exercise can keep lowering it.",
-      );
+      fire(`exercise:${ex.id}`, "yellow", "alertMsg.yellow.exercise");
     }
   }
 
-  // HYDRATION — fewer than 4 glasses by 6pm
   if (now.getHours() >= 18) {
     const glasses = getHydration(now);
     if (glasses < 4) {
       const dayBucket = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-      fire(
-        `hydration:${dayBucket}`,
-        "blue",
-        `Only ${glasses} glasses of water today. Try to drink more before bed.`,
-      );
+      fire(`hydration:${dayBucket}`, "blue", "alertMsg.blue.hydration", { n: glasses });
     }
   }
 
-  // CRITICAL — glucose < 55, escalate as a second red alert
   for (const g of glucose) {
     if (g.value < 55) {
-      fire(
-        `red:critical:${g.id}`,
-        "red",
-        `Critical low glucose (${g.value} mg/dL). Get help if needed.`,
-      );
+      fire(`red:critical:${g.id}`, "red", "alertMsg.red.critical", { n: g.value });
     }
   }
 
-  // SPECIAL DAY — extra check-in every 2 hours while active
   const sd = getSpecialDay();
   if (sd.active) {
     const bucket = Math.floor(now.getTime() / (2 * 60 * MIN));
-    fire(
-      `special:${bucket}`,
-      "blue",
-      "Special day mode — quick check-in: how are you feeling? Log glucose if unsure.",
-    );
+    fire(`special:${bucket}`, "blue", "alertMsg.blue.special");
   }
 
-
-  // RESEND — red/orange unanswered after 20 min, once
   const list = read();
   let changed = false;
   for (const a of list) {
@@ -238,12 +204,11 @@ export function evaluateAlerts(now: Date = new Date()) {
     if (age >= 20) {
       a.resent = true;
       a.resentAt = new Date().toISOString();
-      notify(a.level, `[Reminder] ${a.message}`);
+      notify(a.level, t("alertMsg.reminderPrefix") + t(a.messageKey, a.messageParams));
       changed = true;
     }
   }
   if (changed) write(list);
 }
 
-// Suppress unused-import warnings for PROFILES (kept for re-export).
 export { PROFILES };
