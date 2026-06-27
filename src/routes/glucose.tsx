@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { addGlucose, type GlucoseEntry } from "@/lib/storage";
+import { t, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/glucose")({
   head: () => ({ meta: [{ title: "Log glucose — InsulinaApp" }] }),
@@ -17,6 +18,7 @@ const moments: GlucoseEntry["moment"][] = [
 ];
 
 function GlucosePage() {
+  useLang();
   const navigate = useNavigate();
   const [value, setValue] = useState<number | "">("");
   const [moment, setMoment] = useState<GlucoseEntry["moment"]>("Fasting");
@@ -36,10 +38,10 @@ function GlucosePage() {
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">Log glucose</h1>
+      <h1 className="text-2xl font-bold text-primary">{t("glucose.title")}</h1>
       <form onSubmit={submit} className="mt-6 space-y-5">
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">Glucose (mg/dL)</span>
+          <span className="mb-1.5 block text-sm font-medium">{t("glucose.value")}</span>
           <input
             type="number"
             inputMode="numeric"
@@ -50,12 +52,12 @@ function GlucosePage() {
             }
             required
             className="input text-2xl font-semibold"
-            placeholder="e.g. 110"
+            placeholder={t("glucose.valuePh")}
           />
         </label>
 
         <div>
-          <span className="mb-2 block text-sm font-medium">Moment</span>
+          <span className="mb-2 block text-sm font-medium">{t("glucose.moment")}</span>
           <div className="grid grid-cols-2 gap-2">
             {moments.map((m) => (
               <button
@@ -68,14 +70,14 @@ function GlucosePage() {
                     : "border-border bg-card hover:bg-accent"
                 }`}
               >
-                {m}
+                {t(`moment.${m}`)}
               </button>
             ))}
           </div>
         </div>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">Notes (optional)</span>
+          <span className="mb-1.5 block text-sm font-medium">{t("common.notes")}</span>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -85,7 +87,7 @@ function GlucosePage() {
         </label>
 
         <button type="submit" className="btn-primary w-full">
-          Save
+          {t("common.save")}
         </button>
       </form>
     </AppShell>

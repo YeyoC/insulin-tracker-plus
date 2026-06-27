@@ -2,7 +2,11 @@ import type { Profile } from "./storage";
 import { getInsulin } from "./storage";
 import { windowFor } from "./insulin";
 
-export type DoseAdjustment = { factor: number; reason: string };
+export type DoseAdjustment = {
+  factor: number;
+  reasonKey: string;
+  reasonParams?: Record<string, string | number>;
+};
 
 export type DoseBreakdown = {
   carbDose: number;
@@ -38,16 +42,11 @@ export function calculateDose(opts: {
 
   const adjustments: DoseAdjustment[] = [];
 
-  // Dawn phenomenon: within first 3h after wake-up
   const sinceWake = minutesSinceWake(mealTime, profile.wakeTime);
   if (sinceWake >= 0 && sinceWake <= 180) {
-    adjustments.push({
-      factor: 1.2,
-      reason: "Dawn phenomenon adjustment applied (+20%)",
-    });
+    adjustments.push({ factor: 1.2, reasonKey: "doseAdj.dawn" });
   }
 
-  // Active NPH adjustments
   const insulin = getInsulin();
   const now = mealTime.getTime();
   for (const e of insulin) {
@@ -56,17 +55,11 @@ export function calculateDose(opts: {
     const minsSince = (now - new Date(e.timestamp).getTime()) / 60_000;
     if (minsSince < 60 || now >= w.end.getTime()) continue;
     if (minsSince >= 60 && minsSince < 180) {
-      adjustments.push({
-        factor: 0.9,
-        reason: "NPH rising (1–3h after injection): Lispro reduced by 10%",
-      });
+      adjustments.push({ factor: 0.9, reasonKey: "doseAdj.nphRising" });
       break;
     }
     if (minsSince >= 240 && minsSince <= 480) {
-      adjustments.push({
-        factor: 0.8,
-        reason: "NPH at peak (4–8h after injection): Lispro reduced by 20%",
-      });
+      adjustments.push({ factor: 0.8, reasonKey: "doseAdj.nphPeak" });
       break;
     }
   }
@@ -78,7 +71,7 @@ export function calculateDose(opts: {
     correctionDose,
     baseDose,
     adjustments,
-    totalDose: Math.max(0, Math.round(totalDose * 2) / 2), // round to 0.5U
+    totalDose: Math.max(0, Math.round(totalDose * 2) / 2),
   };
 }
 

@@ -6,8 +6,10 @@ import { DayTimeline } from "@/components/DayTimeline";
 import { ActiveInsulinBar } from "@/components/ActiveInsulinBar";
 import { HomeExtras } from "@/components/HomeExtras";
 import { CriticalGlucoseOverlay } from "@/components/CriticalGlucoseOverlay";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
+import { t, locale, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const lang = useLang();
   const navigate = useNavigate();
   const { profile, ready } = useProfile();
   const [now, setNow] = useState<Date | null>(null);
@@ -27,7 +30,7 @@ function Home() {
 
   useEffect(() => {
     setNow(new Date());
-    const t = setInterval(() => setNow(new Date()), 30_000);
+    const tt = setInterval(() => setNow(new Date()), 30_000);
     const refresh = () => {
       const list = getGlucose();
       setLatest(list[0] ?? null);
@@ -35,7 +38,7 @@ function Home() {
     refresh();
     window.addEventListener("insulina:update", refresh);
     return () => {
-      clearInterval(t);
+      clearInterval(tt);
       window.removeEventListener("insulina:update", refresh);
     };
   }, []);
@@ -63,7 +66,7 @@ function Home() {
     <AppShell>
       <header>
         <p className="text-sm text-muted-foreground">
-          {now?.toLocaleString(undefined, {
+          {now?.toLocaleString(locale(lang), {
             weekday: "long",
             day: "numeric",
             month: "long",
@@ -72,15 +75,18 @@ function Home() {
           })}
         </p>
         <div className="mt-1 flex items-baseline justify-between gap-3">
-          <h1 className="text-3xl font-bold text-primary">Hi, {profile.name}</h1>
-          <Link to="/settings" className="text-sm font-medium text-secondary hover:underline">
-            Settings
-          </Link>
+          <h1 className="text-3xl font-bold text-primary">{t("home.greeting", { name: profile.name })}</h1>
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <Link to="/settings" className="text-sm font-medium text-secondary hover:underline">
+              {t("common.settings")}
+            </Link>
+          </div>
         </div>
       </header>
 
       <section className={`mt-6 rounded-2xl p-6 shadow-sm ${statusColor}`}>
-        <p className="text-sm opacity-90">Last glucose</p>
+        <p className="text-sm opacity-90">{t("home.lastGlucose")}</p>
         {latest ? (
           <>
             <div className="mt-2 flex items-baseline gap-2">
@@ -88,8 +94,8 @@ function Home() {
               <span className="text-lg opacity-90">mg/dL</span>
             </div>
             <p className="mt-2 text-sm opacity-90">
-              {latest.moment} ·{" "}
-              {new Date(latest.timestamp).toLocaleString(undefined, {
+              {t(`moment.${latest.moment}`)} ·{" "}
+              {new Date(latest.timestamp).toLocaleString(locale(lang), {
                 hour: "2-digit",
                 minute: "2-digit",
                 day: "numeric",
@@ -98,15 +104,15 @@ function Home() {
             </p>
           </>
         ) : (
-          <p className="mt-2 text-lg">No readings yet.</p>
+          <p className="mt-2 text-lg">{t("home.noReadings")}</p>
         )}
       </section>
 
       <div className="mt-6 grid grid-cols-4 gap-2">
-        <Link to="/glucose" className="card-action text-sm">Glucose</Link>
-        <Link to="/insulin" className="card-action text-sm">Insulin</Link>
-        <Link to="/meals/new" className="card-action text-sm">Meal</Link>
-        <Link to="/exercise" className="card-action text-sm">Exercise</Link>
+        <Link to="/glucose" className="card-action text-sm">{t("home.actionGlucose")}</Link>
+        <Link to="/insulin" className="card-action text-sm">{t("home.actionInsulin")}</Link>
+        <Link to="/meals/new" className="card-action text-sm">{t("home.actionMeal")}</Link>
+        <Link to="/exercise" className="card-action text-sm">{t("home.actionExercise")}</Link>
       </div>
 
       <HomeExtras />
@@ -114,14 +120,14 @@ function Home() {
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Active insulin
+          {t("home.activeInsulin")}
         </h2>
         <ActiveInsulinBar />
       </section>
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Today
+          {t("home.today")}
         </h2>
         <DayTimeline profile={profile} />
       </section>
@@ -129,7 +135,7 @@ function Home() {
 
       <Link
         to="/glucose"
-        aria-label="Add new entry"
+        aria-label={t("home.addEntry")}
         className="fixed bottom-24 right-1/2 translate-x-[11rem] z-30 grid size-16 place-items-center rounded-full bg-secondary text-secondary-foreground shadow-lg shadow-secondary/30 hover:bg-primary transition-colors"
       >
         <Plus className="size-8" />
