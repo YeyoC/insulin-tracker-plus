@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronDown, Plus, Search, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { searchFoods, type FoodResult } from "@/lib/foods";
+import { searchFoods, CATEGORIES, PRELOADED_FOODS, type FoodResult } from "@/lib/foods";
 import {
   addMeal,
   carbsFor,
@@ -184,40 +184,18 @@ function FoodPicker({
   onPick: (food: FoodResult, grams: number) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<FoodResult[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<FoodResult | null>(null);
   const [grams, setGrams] = useState<number | "">(100);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualName, setManualName] = useState("");
   const [manualCarbs, setManualCarbs] = useState<number | "">("");
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>(() => ({
+    [CATEGORIES[0]]: true,
+  }));
   const frequent = useMemo(() => getFrequentFoods(10), []);
-  const ctrlRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    const q = query.trim();
-    if (!q) {
-      setResults([]);
-      setLoading(false);
-      return;
-    }
-    ctrlRef.current?.abort();
-    const ctrl = new AbortController();
-    ctrlRef.current = ctrl;
-    setLoading(true);
-    const tt = setTimeout(async () => {
-      try {
-        const r = await searchFoods(q, ctrl.signal);
-        if (!ctrl.signal.aborted) setResults(r);
-      } finally {
-        if (!ctrl.signal.aborted) setLoading(false);
-      }
-    }, 300);
-    return () => {
-      clearTimeout(tt);
-      ctrl.abort();
-    };
-  }, [query]);
+  const results = useMemo(() => searchFoods(query), [query]);
+  const isSearching = query.trim().length > 0;
 
   const confirm = () => {
     if (!selected) return;
@@ -232,8 +210,14 @@ function FoodPicker({
       name: manualName.trim(),
       carbsPer100g: manualCarbs,
       source: "local",
+      category: "Extras",
     });
     setManualOpen(false);
+  };
+
+  const pickByName = (name: string) => {
+    const f = PRELOADED_FOODS.find((p) => p.name === name);
+    if (f) setSelected(f);
   };
 
   return (
@@ -343,7 +327,7 @@ function FoodPicker({
             </div>
 
             <div className="flex-1 overflow-y-auto p-3">
-              {!query && frequent.length > 0 && (
+              {!isSearching && frequent.length > 0 && (
                 <section className="mb-4">
                   <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("newMeal.frequent")}
@@ -352,13 +336,7 @@ function FoodPicker({
                     {frequent.map((f) => (
                       <button
                         key={f.name}
-                        onClick={() =>
-                          setSelected({
-                            name: f.name,
-                            carbsPer100g: f.carbsPer100g,
-                            source: "local",
-                          })
-                        }
+                        onClick={() => pickByName(f.name)}
                         className="rounded-full border border-border bg-card px-3 py-1.5 text-sm hover:bg-accent"
                       >
                         {f.name}
@@ -368,37 +346,81 @@ function FoodPicker({
                 </section>
               )}
 
-              {loading && (
-                <p className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" /> {t("newMeal.searching")}
-                </p>
-              )}
-
-              {!loading && query && results.length === 0 && (
-                <p className="py-6 text-center text-sm text-muted-foreground">
-                  {t("newMeal.noResults")}
-                </p>
-              )}
-
-              <ul className="space-y-1">
-                {results.map((r, idx) => (
-                  <li key={`${r.name}-${idx}`}>
-                    <button
-                      onClick={() => setSelected(r)}
-                      className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-accent"
-                    >
-                      <div className="min-w-0 flex-1 pr-3">
-                        <p className="truncate font-medium">{r.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("newMeal.carbsPer100", { n: r.carbsPer100g })}
-                          {r.source === "off" ? " · Open Food Facts" : ""}
-                        </p>
+              {isSearching ? (
+                <>
+                  {results.length === 0 && (
+                    <p className="py-6 text-center text-sm text-muted-foreground">
+                      {t("newMeal.noResults")}
+                    </p>
+                  )}
+                  <ul className="space-y-1">
+                    {results.map((r, idx) => (
+                      <li key={`${r.name}-${idx}`}>
+                        <button
+                          onClick={() => setSelected(r)}
+                          className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-accent"
+                        >
+                          <div className="min-w-0 flex-1 pr-3">
+                            <p className="truncate font-medium">{r.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {t("newMeal.carbsPer100", { n: r.carbsPer100g })} · {r.category}
+                            </p>
+                          </div>
+                          <Plus className="size-4 text-primary" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  {CATEGORIES.map((cat) => {
+                    const open = !!openCats[cat];
+                    const items = PRELOADED_FOODS.filter((f) => f.category === cat);
+                    return (
+                      <div key={cat} className="rounded-lg border border-border">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenCats((s) => ({ ...s, [cat]: !s[cat] }))
+                          }
+                          className="flex w-full items-center justify-between px-3 py-2.5 text-left font-medium hover:bg-accent"
+                        >
+                          <span>
+                            {cat}{" "}
+                            <span className="text-xs font-normal text-muted-foreground">
+                              ({items.length})
+                            </span>
+                          </span>
+                          <ChevronDown
+                            className={`size-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        {open && (
+                          <ul className="border-t border-border">
+                            {items.map((r, idx) => (
+                              <li key={`${r.name}-${idx}`}>
+                                <button
+                                  onClick={() => setSelected(r)}
+                                  className="flex w-full items-center justify-between p-3 text-left hover:bg-accent"
+                                >
+                                  <div className="min-w-0 flex-1 pr-3">
+                                    <p className="truncate font-medium">{r.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {t("newMeal.carbsPer100", { n: r.carbsPer100g })}
+                                    </p>
+                                  </div>
+                                  <Plus className="size-4 text-primary" />
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
-                      <Plus className="size-4 text-primary" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                    );
+                  })}
+                </div>
+              )}
 
               <button
                 onClick={() => setManualOpen(true)}

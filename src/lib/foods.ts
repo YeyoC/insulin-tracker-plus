@@ -1,77 +1,136 @@
-// Food search — local preloaded + Open Food Facts API
 export type FoodResult = {
   name: string;
   carbsPer100g: number;
-  source: "local" | "off";
+  source: "local";
+  category: string;
 };
 
 export const PRELOADED_FOODS: FoodResult[] = [
-  { name: "Corn tortilla", carbsPer100g: 44, source: "local" },
-  { name: "White rice (cooked)", carbsPer100g: 28, source: "local" },
-  { name: "Black beans (cooked)", carbsPer100g: 23, source: "local" },
-  { name: "White bread", carbsPer100g: 49, source: "local" },
-  { name: "Orange juice", carbsPer100g: 10, source: "local" },
-  { name: "Whole milk", carbsPer100g: 5, source: "local" },
-  { name: "Avocado", carbsPer100g: 9, source: "local" },
-  { name: "Banana", carbsPer100g: 23, source: "local" },
-  { name: "Apple", carbsPer100g: 14, source: "local" },
-  { name: "Oatmeal (cooked)", carbsPer100g: 12, source: "local" },
-  { name: "Pasta (cooked)", carbsPer100g: 25, source: "local" },
-  { name: "Potato (boiled)", carbsPer100g: 17, source: "local" },
+  { name: "Tortilla de maíz", carbsPer100g: 44, source: "local", category: "Tortillas y pan" },
+  { name: "Tortilla de harina", carbsPer100g: 52, source: "local", category: "Tortillas y pan" },
+  { name: "Bolillo", carbsPer100g: 55, source: "local", category: "Tortillas y pan" },
+  { name: "Pan blanco Bimbo", carbsPer100g: 49, source: "local", category: "Tortillas y pan" },
+  { name: "Pan integral Bimbo", carbsPer100g: 41, source: "local", category: "Tortillas y pan" },
+  { name: "Pan dulce concha", carbsPer100g: 62, source: "local", category: "Tortillas y pan" },
+  { name: "Telera", carbsPer100g: 54, source: "local", category: "Tortillas y pan" },
+  { name: "Tostadas horneadas", carbsPer100g: 72, source: "local", category: "Tortillas y pan" },
+  { name: "Tortilla taquera", carbsPer100g: 46, source: "local", category: "Tortillas y pan" },
+  { name: "Corn Flakes Kellogg's", carbsPer100g: 84, source: "local", category: "Cereales" },
+  { name: "Zucaritas Kellogg's", carbsPer100g: 88, source: "local", category: "Cereales" },
+  { name: "Choco Krispis Kellogg's", carbsPer100g: 85, source: "local", category: "Cereales" },
+  { name: "Special K Kellogg's", carbsPer100g: 72, source: "local", category: "Cereales" },
+  { name: "Granola con miel", carbsPer100g: 68, source: "local", category: "Cereales" },
+  { name: "Avena cocida", carbsPer100g: 12, source: "local", category: "Cereales" },
+  { name: "Avena cruda Quaker", carbsPer100g: 66, source: "local", category: "Cereales" },
+  { name: "Arroz blanco cocido", carbsPer100g: 28, source: "local", category: "Cereales" },
+  { name: "Arroz integral cocido", carbsPer100g: 23, source: "local", category: "Cereales" },
+  { name: "Pasta cocida", carbsPer100g: 25, source: "local", category: "Cereales" },
+  { name: "Sopa de letras cocida", carbsPer100g: 22, source: "local", category: "Cereales" },
+  { name: "Frijoles negros cocidos", carbsPer100g: 23, source: "local", category: "Leguminosas" },
+  { name: "Frijoles pintos cocidos", carbsPer100g: 22, source: "local", category: "Leguminosas" },
+  { name: "Frijoles refritos", carbsPer100g: 16, source: "local", category: "Leguminosas" },
+  { name: "Lentejas cocidas", carbsPer100g: 20, source: "local", category: "Leguminosas" },
+  { name: "Garbanzos cocidos", carbsPer100g: 27, source: "local", category: "Leguminosas" },
+  { name: "Habas cocidas", carbsPer100g: 21, source: "local", category: "Leguminosas" },
+  { name: "Papa cocida", carbsPer100g: 17, source: "local", category: "Verduras" },
+  { name: "Camote cocido", carbsPer100g: 20, source: "local", category: "Verduras" },
+  { name: "Elote cocido", carbsPer100g: 19, source: "local", category: "Verduras" },
+  { name: "Chícharos cocidos", carbsPer100g: 14, source: "local", category: "Verduras" },
+  { name: "Zanahoria", carbsPer100g: 10, source: "local", category: "Verduras" },
+  { name: "Betabel cocido", carbsPer100g: 10, source: "local", category: "Verduras" },
+  { name: "Jitomate", carbsPer100g: 4, source: "local", category: "Verduras" },
+  { name: "Cebolla", carbsPer100g: 9, source: "local", category: "Verduras" },
+  { name: "Nopal cocido", carbsPer100g: 3, source: "local", category: "Verduras" },
+  { name: "Calabacita cocida", carbsPer100g: 3, source: "local", category: "Verduras" },
+  { name: "Brócoli cocido", carbsPer100g: 7, source: "local", category: "Verduras" },
+  { name: "Espinaca cocida", carbsPer100g: 4, source: "local", category: "Verduras" },
+  { name: "Chayote cocido", carbsPer100g: 4, source: "local", category: "Verduras" },
+  { name: "Plátano", carbsPer100g: 23, source: "local", category: "Frutas" },
+  { name: "Manzana", carbsPer100g: 14, source: "local", category: "Frutas" },
+  { name: "Naranja", carbsPer100g: 12, source: "local", category: "Frutas" },
+  { name: "Mandarina", carbsPer100g: 13, source: "local", category: "Frutas" },
+  { name: "Mango", carbsPer100g: 15, source: "local", category: "Frutas" },
+  { name: "Papaya", carbsPer100g: 11, source: "local", category: "Frutas" },
+  { name: "Sandía", carbsPer100g: 8, source: "local", category: "Frutas" },
+  { name: "Melón", carbsPer100g: 9, source: "local", category: "Frutas" },
+  { name: "Uvas", carbsPer100g: 17, source: "local", category: "Frutas" },
+  { name: "Piña", carbsPer100g: 13, source: "local", category: "Frutas" },
+  { name: "Guayaba", carbsPer100g: 14, source: "local", category: "Frutas" },
+  { name: "Durazno", carbsPer100g: 10, source: "local", category: "Frutas" },
+  { name: "Pera", carbsPer100g: 15, source: "local", category: "Frutas" },
+  { name: "Fresas", carbsPer100g: 8, source: "local", category: "Frutas" },
+  { name: "Aguacate", carbsPer100g: 9, source: "local", category: "Frutas" },
+  { name: "Jícama cruda", carbsPer100g: 9, source: "local", category: "Frutas" },
+  { name: "Tuna roja", carbsPer100g: 14, source: "local", category: "Frutas" },
+  { name: "Leche entera Lala", carbsPer100g: 5, source: "local", category: "Lácteos" },
+  { name: "Leche entera Nutri Yaki", carbsPer100g: 5, source: "local", category: "Lácteos" },
+  { name: "Leche descremada Lala", carbsPer100g: 5, source: "local", category: "Lácteos" },
+  { name: "Leche entera Alpura", carbsPer100g: 5, source: "local", category: "Lácteos" },
+  { name: "Leche de chocolate Lala", carbsPer100g: 10, source: "local", category: "Lácteos" },
+  { name: "Yogur natural Alpura", carbsPer100g: 6, source: "local", category: "Lácteos" },
+  { name: "Yogur endulzado Yoplait", carbsPer100g: 17, source: "local", category: "Lácteos" },
+  { name: "Queso panela", carbsPer100g: 2, source: "local", category: "Lácteos" },
+  { name: "Queso Oaxaca", carbsPer100g: 1, source: "local", category: "Lácteos" },
+  { name: "Queso Chihuahua", carbsPer100g: 1, source: "local", category: "Lácteos" },
+  { name: "Crema ácida", carbsPer100g: 3, source: "local", category: "Lácteos" },
+  { name: "Pechuga de pollo cocida", carbsPer100g: 0, source: "local", category: "Proteínas" },
+  { name: "Milanesa de res", carbsPer100g: 6, source: "local", category: "Proteínas" },
+  { name: "Carne molida cocida", carbsPer100g: 0, source: "local", category: "Proteínas" },
+  { name: "Bistec de res", carbsPer100g: 0, source: "local", category: "Proteínas" },
+  { name: "Huevo entero", carbsPer100g: 1, source: "local", category: "Proteínas" },
+  { name: "Chorizo cocido", carbsPer100g: 2, source: "local", category: "Proteínas" },
+  { name: "Atún en agua", carbsPer100g: 0, source: "local", category: "Proteínas" },
+  { name: "Sardina en tomate", carbsPer100g: 5, source: "local", category: "Proteínas" },
+  { name: "Jamón de pavo", carbsPer100g: 3, source: "local", category: "Proteínas" },
+  { name: "Salchicha", carbsPer100g: 4, source: "local", category: "Proteínas" },
+  { name: "Tamale de rajas", carbsPer100g: 24, source: "local", category: "Platillos" },
+  { name: "Tamale de pollo", carbsPer100g: 22, source: "local", category: "Platillos" },
+  { name: "Enchilada con tortilla", carbsPer100g: 20, source: "local", category: "Platillos" },
+  { name: "Quesadilla de harina", carbsPer100g: 30, source: "local", category: "Platillos" },
+  { name: "Taco de bistec", carbsPer100g: 18, source: "local", category: "Platillos" },
+  { name: "Pozole caldo solo", carbsPer100g: 8, source: "local", category: "Platillos" },
+  { name: "Sopa de fideos cocida", carbsPer100g: 18, source: "local", category: "Platillos" },
+  { name: "Arroz con leche", carbsPer100g: 22, source: "local", category: "Platillos" },
+  { name: "Atole de guayaba", carbsPer100g: 18, source: "local", category: "Platillos" },
+  { name: "Chilaquiles con tortilla", carbsPer100g: 26, source: "local", category: "Platillos" },
+  { name: "Gordita de chicharrón", carbsPer100g: 32, source: "local", category: "Platillos" },
+  { name: "Tlayuda con frijoles", carbsPer100g: 35, source: "local", category: "Platillos" },
+  { name: "Jugo de naranja natural", carbsPer100g: 10, source: "local", category: "Bebidas" },
+  { name: "Jugo Jumex naranja", carbsPer100g: 12, source: "local", category: "Bebidas" },
+  { name: "Agua de jamaica", carbsPer100g: 8, source: "local", category: "Bebidas" },
+  { name: "Agua de horchata", carbsPer100g: 16, source: "local", category: "Bebidas" },
+  { name: "Agua de tamarindo", carbsPer100g: 14, source: "local", category: "Bebidas" },
+  { name: "Coca-Cola regular", carbsPer100g: 11, source: "local", category: "Bebidas" },
+  { name: "Pepsi regular", carbsPer100g: 11, source: "local", category: "Bebidas" },
+  { name: "Jarrito de mandarina", carbsPer100g: 12, source: "local", category: "Bebidas" },
+  { name: "Limonada con azúcar", carbsPer100g: 9, source: "local", category: "Bebidas" },
+  { name: "Leche Milo", carbsPer100g: 14, source: "local", category: "Bebidas" },
+  { name: "Tortillitas Sabritas", carbsPer100g: 63, source: "local", category: "Snacks" },
+  { name: "Papas fritas Sabritas", carbsPer100g: 50, source: "local", category: "Snacks" },
+  { name: "Doritos", carbsPer100g: 65, source: "local", category: "Snacks" },
+  { name: "Rielito", carbsPer100g: 78, source: "local", category: "Snacks" },
+  { name: "Palomitas de maíz", carbsPer100g: 55, source: "local", category: "Snacks" },
+  { name: "Galletas Marías", carbsPer100g: 76, source: "local", category: "Snacks" },
+  { name: "Galletas Oreo", carbsPer100g: 71, source: "local", category: "Snacks" },
+  { name: "Pan Gansito Marinela", carbsPer100g: 58, source: "local", category: "Snacks" },
+  { name: "Pingüinos Marinela", carbsPer100g: 55, source: "local", category: "Snacks" },
+  { name: "Mantecadas Bimbo", carbsPer100g: 54, source: "local", category: "Snacks" },
+  { name: "Nueces mixtas", carbsPer100g: 14, source: "local", category: "Snacks" },
+  { name: "Cacahuates salados", carbsPer100g: 16, source: "local", category: "Snacks" },
+  { name: "Mazapán De la Rosa", carbsPer100g: 63, source: "local", category: "Snacks" },
+  { name: "Azúcar blanca", carbsPer100g: 100, source: "local", category: "Extras" },
+  { name: "Miel de abeja", carbsPer100g: 82, source: "local", category: "Extras" },
+  { name: "Mermelada", carbsPer100g: 65, source: "local", category: "Extras" },
+  { name: "Mantequilla", carbsPer100g: 0, source: "local", category: "Extras" },
+  { name: "Aceite vegetal", carbsPer100g: 0, source: "local", category: "Extras" },
 ];
 
-function searchLocal(query: string): FoodResult[] {
+export const CATEGORIES = [...new Set(PRELOADED_FOODS.map((f) => f.category))];
+
+export function searchFoods(query: string): FoodResult[] {
   const q = query.toLowerCase().trim();
-  if (!q) return [];
-  return PRELOADED_FOODS.filter((f) => f.name.toLowerCase().includes(q));
-}
-
-type OFFProduct = {
-  product_name?: string;
-  generic_name?: string;
-  brands?: string;
-  nutriments?: { carbohydrates_100g?: number };
-};
-
-export async function searchFoods(query: string, signal?: AbortSignal): Promise<FoodResult[]> {
-  const q = query.trim();
-  if (!q) return [];
-  const local = searchLocal(q);
-
-  try {
-    const url = new URL("https://world.openfoodfacts.org/cgi/search.pl");
-    url.searchParams.set("search_terms", q);
-    url.searchParams.set("search_simple", "1");
-    url.searchParams.set("action", "process");
-    url.searchParams.set("json", "1");
-    url.searchParams.set("page_size", "15");
-    url.searchParams.set("fields", "product_name,generic_name,brands,nutriments");
-
-    const res = await fetch(url.toString(), { signal });
-    if (!res.ok) return local;
-    const data = (await res.json()) as { products?: OFFProduct[] };
-    const remote: FoodResult[] = [];
-    for (const p of data.products ?? []) {
-      const name =
-        p.product_name?.trim() || p.generic_name?.trim() || p.brands?.trim() || "";
-      const carbs = p.nutriments?.carbohydrates_100g;
-      if (!name || typeof carbs !== "number" || Number.isNaN(carbs)) continue;
-      remote.push({
-        name,
-        carbsPer100g: Math.round(carbs * 10) / 10,
-        source: "off",
-      });
-      if (remote.length >= 12) break;
-    }
-
-    const seen = new Set<string>();
-    return [...local, ...remote].filter((f) => {
-      const k = f.name.toLowerCase();
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
-  } catch {
-    return local;
-  }
+  if (!q) return PRELOADED_FOODS;
+  return PRELOADED_FOODS.filter(
+    (f) => f.name.toLowerCase().includes(q) || f.category.toLowerCase().includes(q),
+  );
 }
