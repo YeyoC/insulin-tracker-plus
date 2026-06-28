@@ -336,12 +336,7 @@ function FoodPicker({
                     {frequent.map((f) => (
                       <button
                         key={f.name}
-                        onClick={() => pickByName(f.name) || setSelected({
-                          name: f.name,
-                          carbsPer100g: f.carbsPer100g,
-                          source: "local",
-                          category: "Extras",
-                        })}
+                        onClick={() => pickByName(f.name)}
                         className="rounded-full border border-border bg-card px-3 py-1.5 text-sm hover:bg-accent"
                       >
                         {f.name}
