@@ -380,7 +380,12 @@ function FoodPicker({
                           className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-accent"
                         >
                           <div className="min-w-0 flex-1 pr-3">
-                            <p className="truncate font-medium">{r.name}</p>
+                            <p className="flex items-center gap-1.5 truncate font-medium">
+                              {r.source === "off" && (
+                                <Globe className="size-3.5 shrink-0 text-muted-foreground" />
+                              )}
+                              <span className="truncate">{r.name}</span>
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               {t("newMeal.carbsPer100", { n: r.carbsPer100g })} · {r.category}
                             </p>
