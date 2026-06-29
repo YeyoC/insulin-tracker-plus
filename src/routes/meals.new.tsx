@@ -194,8 +194,24 @@ function FoodPicker({
   }));
   const frequent = useMemo(() => getFrequentFoods(10), []);
 
-  const results = useMemo(() => searchFoods(query), [query]);
+  const [results, setResults] = useState<FoodResult[]>(PRELOADED_FOODS);
+  const [loading, setLoading] = useState(false);
   const isSearching = query.trim().length > 0;
+
+  useEffect(() => {
+    if (!query || query.length < 2) {
+      setResults(PRELOADED_FOODS);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      const r = await searchFoods(query);
+      setResults(r);
+      setLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const confirm = () => {
     if (!selected) return;
