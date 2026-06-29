@@ -12,6 +12,7 @@ import {
   type MealFood,
 } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
+import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/meals/new")({
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
