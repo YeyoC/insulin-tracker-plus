@@ -336,9 +336,12 @@ function FoodPicker({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t("newMeal.searchPh")}
-                  className="input pl-9"
+                  className="input pl-9 pr-9"
                   autoFocus
                 />
+                {loading && (
+                  <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
               </div>
             </div>
 
