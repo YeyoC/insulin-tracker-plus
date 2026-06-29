@@ -1,7 +1,7 @@
 export type FoodResult = {
   name: string;
   carbsPer100g: number;
-  source: "local";
+  source: "local" | "off";
   category: string;
 };
 
