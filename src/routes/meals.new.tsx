@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ChevronDown, Plus, Search, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Globe, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { searchFoods, CATEGORIES, PRELOADED_FOODS, type FoodResult } from "@/lib/foods";
 import {
@@ -194,8 +194,24 @@ function FoodPicker({
   }));
   const frequent = useMemo(() => getFrequentFoods(10), []);
 
-  const results = useMemo(() => searchFoods(query), [query]);
+  const [results, setResults] = useState<FoodResult[]>(PRELOADED_FOODS);
+  const [loading, setLoading] = useState(false);
   const isSearching = query.trim().length > 0;
+
+  useEffect(() => {
+    if (!query || query.length < 2) {
+      setResults(PRELOADED_FOODS);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      const r = await searchFoods(query);
+      setResults(r);
+      setLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const confirm = () => {
     if (!selected) return;
@@ -320,9 +336,12 @@ function FoodPicker({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t("newMeal.searchPh")}
-                  className="input pl-9"
+                  className="input pl-9 pr-9"
                   autoFocus
                 />
+                {loading && (
+                  <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
               </div>
             </div>
 
@@ -361,7 +380,12 @@ function FoodPicker({
                           className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-accent"
                         >
                           <div className="min-w-0 flex-1 pr-3">
-                            <p className="truncate font-medium">{r.name}</p>
+                            <p className="flex items-center gap-1.5 truncate font-medium">
+                              {r.source === "off" && (
+                                <Globe className="size-3.5 shrink-0 text-muted-foreground" />
+                              )}
+                              <span className="truncate">{r.name}</span>
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               {t("newMeal.carbsPer100", { n: r.carbsPer100g })} · {r.category}
                             </p>
