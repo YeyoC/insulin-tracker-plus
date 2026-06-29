@@ -159,6 +159,10 @@ const ES: Dict = {
   "newMeal.gramsConsumed": "Gramos consumidos",
   "newMeal.estCarbs": "Carbohidratos estimados:",
   "newMeal.addToMeal": "Añadir a comida",
+  "newMeal.estPerFoodTitle": "Lispro estimada por alimento (base)",
+  "newMeal.totalCho": "Total CHO",
+  "newMeal.lisproBase": "Lispro base",
+  "newMeal.correctionNote": "La corrección por glucosa se aplica al guardar",
 
   // history
   "history.title": "Historial",
@@ -408,6 +412,10 @@ const EN: Dict = {
   "newMeal.gramsConsumed": "Grams consumed",
   "newMeal.estCarbs": "Estimated carbs:",
   "newMeal.addToMeal": "Add to meal",
+  "newMeal.estPerFoodTitle": "Estimated Lispro per food (base)",
+  "newMeal.totalCho": "Total CHO",
+  "newMeal.lisproBase": "Lispro base",
+  "newMeal.correctionNote": "Glucose correction is applied on save",
 
   "history.title": "History",
   "history.tab.stats": "Stats",

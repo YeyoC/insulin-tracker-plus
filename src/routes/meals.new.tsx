@@ -12,6 +12,7 @@ import {
   type MealFood,
 } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
+import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/meals/new")({
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
@@ -27,12 +28,15 @@ function nowLocalInput() {
 function NewMealPage() {
   useLang();
   const navigate = useNavigate();
+  const { profile } = useProfile();
   const [time, setTime] = useState(nowLocalInput());
   const [notes, setNotes] = useState("");
   const [foods, setFoods] = useState<MealFood[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
+  const icr = profile?.icr ?? 15;
+  const baseDose = total / icr;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +141,46 @@ function NewMealPage() {
                 <span className="ml-1 text-base font-normal opacity-90">g</span>
               </span>
             </div>
+          </div>
+        )}
+
+        {foods.length > 0 && foods.some((f) => f.grams > 0) && (
+          <div className="rounded-xl bg-primary p-4 text-primary-foreground">
+            <h3 className="mb-3 text-sm font-semibold">
+              {t("newMeal.estPerFoodTitle")}
+            </h3>
+            <div className="space-y-2">
+              {foods.map((f, idx) => {
+                const foodCarbs = carbsFor(f);
+                const proportionalUnits =
+                  total > 0 ? (foodCarbs / total) * baseDose : 0;
+                return (
+                  <div key={idx} className="text-sm">
+                    <div>
+                      {f.name} · {f.grams}g
+                    </div>
+                    <div className="opacity-90">
+                      {Math.round(foodCarbs)}g CHO → ~
+                      {proportionalUnits.toFixed(1)}U
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="my-2 border-t border-primary-foreground/30" />
+            <div className="space-y-1 text-sm font-bold">
+              <div className="flex justify-between">
+                <span>{t("newMeal.totalCho")}</span>
+                <span>{Math.round(total)}g</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{t("newMeal.lisproBase")}</span>
+                <span>~{baseDose.toFixed(1)}U</span>
+              </div>
+            </div>
+            <p className="mt-2 text-xs italic opacity-80">
+              {t("newMeal.correctionNote")}
+            </p>
           </div>
         )}
 
