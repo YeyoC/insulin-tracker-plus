@@ -28,6 +28,7 @@ function nowLocalInput() {
 function NewMealPage() {
   useLang();
   const navigate = useNavigate();
+  const { profile } = useProfile();
   const [time, setTime] = useState(nowLocalInput());
   const [notes, setNotes] = useState("");
   const [foods, setFoods] = useState<MealFood[]>([]);
