@@ -35,6 +35,8 @@ function NewMealPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
+  const icr = profile?.icr ?? 15;
+  const baseDose = total / icr;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
