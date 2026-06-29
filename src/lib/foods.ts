@@ -127,10 +127,22 @@ export const PRELOADED_FOODS: FoodResult[] = [
 
 export const CATEGORIES = [...new Set(PRELOADED_FOODS.map((f) => f.category))];
 
-export function searchFoods(query: string): FoodResult[] {
+export async function searchFoods(query: string): Promise<FoodResult[]> {
   const q = query.toLowerCase().trim();
-  if (!q) return PRELOADED_FOODS;
-  return PRELOADED_FOODS.filter(
-    (f) => f.name.toLowerCase().includes(q) || f.category.toLowerCase().includes(q),
-  );
+  const local = q
+    ? PRELOADED_FOODS.filter(
+        (f) => f.name.toLowerCase().includes(q) || f.category.toLowerCase().includes(q),
+      )
+    : PRELOADED_FOODS;
+  if (q.length < 2) return local;
+  try {
+    const res = await fetch(`/api/foods?q=${encodeURIComponent(q)}`);
+    if (!res.ok) return local;
+    const remote: FoodResult[] = await res.json();
+    const seen = new Set(local.map((f) => f.name.toLowerCase()));
+    const newRemote = remote.filter((f) => !seen.has(f.name.toLowerCase()));
+    return [...local, ...newRemote];
+  } catch {
+    return local;
+  }
 }
