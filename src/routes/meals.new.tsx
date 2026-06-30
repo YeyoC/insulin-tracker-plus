@@ -205,9 +205,20 @@ function NewMealPage() {
         </button>
       </form>
 
-    </AppShell>,
-    document.body
-  )}
+      {pickerOpen && createPortal(
+        <FoodPicker
+          onClose={() => setPickerOpen(false)}
+          onPick={(food, grams) => {
+            setFoods((prev) => [
+              ...prev,
+              { name: food.name, carbsPer100g: food.carbsPer100g, grams },
+            ]);
+            setPickerOpen(false);
+          }}
+        />,
+        document.body
+      )}
+    </AppShell>
   );
 }
 
