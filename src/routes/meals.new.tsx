@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Globe, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { searchFoods, CATEGORIES, PRELOADED_FOODS, type FoodResult } from "@/lib/foods";
