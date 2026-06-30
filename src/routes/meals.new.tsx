@@ -205,19 +205,9 @@ function NewMealPage() {
         </button>
       </form>
 
-      {pickerOpen && (
-        <FoodPicker
-          onClose={() => setPickerOpen(false)}
-          onPick={(food, grams) => {
-            setFoods((prev) => [
-              ...prev,
-              { name: food.name, carbsPer100g: food.carbsPer100g, grams },
-            ]);
-            setPickerOpen(false);
-          }}
-        />
-      )}
-    </AppShell>
+    </AppShell>,
+    document.body
+  )}
   );
 }
 
