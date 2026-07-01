@@ -38,7 +38,7 @@ export type InsulinSite =
 
 export type InsulinEntry = {
   id: string;
-  type: "NPH" | "Lispro";
+  type: string;
   units: number;
   site: InsulinSite;
   notes?: string;
