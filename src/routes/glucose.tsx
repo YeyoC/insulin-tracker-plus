@@ -84,6 +84,16 @@ function GlucosePage() {
         </div>
 
         <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">{t("common.time")}</span>
+          <input
+            type="datetime-local"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="input"
+          />
+        </label>
+
+        <label className="block">
           <span className="mb-1.5 block text-sm font-medium">{t("common.notes")}</span>
           <textarea
             value={notes}
