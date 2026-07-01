@@ -58,6 +58,10 @@ export function calculateDose(opts: {
       adjustments.push({ factor: 0.9, reasonKey: "doseAdj.nphRising" });
       break;
     }
+    if (minsSince >= 180 && minsSince < 240) {
+      adjustments.push({ factor: 0.85, reasonKey: "doseAdj.nphTransition" });
+      break;
+    }
     if (minsSince >= 240 && minsSince <= 480) {
       adjustments.push({ factor: 0.8, reasonKey: "doseAdj.nphPeak" });
       break;
