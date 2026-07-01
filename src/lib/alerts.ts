@@ -121,6 +121,11 @@ export function evaluateAlerts(now: Date = new Date()) {
   const lastMealAt = meals[0] ? new Date(meals[0].timestamp).getTime() : 0;
   const minsSinceMeal = (now.getTime() - lastMealAt) / MIN;
 
+  const twoHoursAgo = now.getTime() - 2 * 60 * MIN;
+  const recentGlucose = glucose.filter(
+    (g) => new Date(g.timestamp).getTime() >= twoHoursAgo
+  );
+
   for (const e of insulin) {
     if (e.type !== "NPH") continue;
     const w = windowFor(e);
