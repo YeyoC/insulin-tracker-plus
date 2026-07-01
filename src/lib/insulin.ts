@@ -39,7 +39,7 @@ export type InsulinWindow = {
 };
 
 export function windowFor(entry: InsulinEntry): InsulinWindow {
-  const profile = PROFILES[entry.type];
+  const profile = PROFILES[entry.type as keyof typeof PROFILES] ?? PROFILES["NPH"];
   const t0 = new Date(entry.timestamp).getTime();
   return {
     entry,
