@@ -135,7 +135,7 @@ export function evaluateAlerts(now: Date = new Date()) {
     }
   }
 
-  for (const g of glucose) {
+  for (const g of recentGlucose) {
     if (g.value < 70) {
       fire(`orange:glu:${g.id}`, "orange", "alertMsg.orange.low");
     }
