@@ -121,6 +121,11 @@ export function evaluateAlerts(now: Date = new Date()) {
   const lastMealAt = meals[0] ? new Date(meals[0].timestamp).getTime() : 0;
   const minsSinceMeal = (now.getTime() - lastMealAt) / MIN;
 
+  const twoHoursAgo = now.getTime() - 2 * 60 * MIN;
+  const recentGlucose = glucose.filter(
+    (g) => new Date(g.timestamp).getTime() >= twoHoursAgo
+  );
+
   for (const e of insulin) {
     if (e.type !== "NPH") continue;
     const w = windowFor(e);
@@ -130,7 +135,7 @@ export function evaluateAlerts(now: Date = new Date()) {
     }
   }
 
-  for (const g of glucose) {
+  for (const g of recentGlucose) {
     if (g.value < 70) {
       fire(`orange:glu:${g.id}`, "orange", "alertMsg.orange.low");
     }
@@ -182,7 +187,7 @@ export function evaluateAlerts(now: Date = new Date()) {
     }
   }
 
-  for (const g of glucose) {
+  for (const g of recentGlucose) {
     if (g.value < 55) {
       fire(`red:critical:${g.id}`, "red", "alertMsg.red.critical", { n: g.value });
     }
