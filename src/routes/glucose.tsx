@@ -17,11 +17,18 @@ const moments: GlucoseEntry["moment"][] = [
   "Overnight",
 ];
 
+function nowLocalInput() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+
 function GlucosePage() {
   useLang();
   const navigate = useNavigate();
   const [value, setValue] = useState<number | "">("");
   const [moment, setMoment] = useState<GlucoseEntry["moment"]>("Fasting");
+  const [time, setTime] = useState(nowLocalInput());
   const [notes, setNotes] = useState("");
 
   const submit = (e: React.FormEvent) => {
@@ -31,7 +38,7 @@ function GlucosePage() {
       value,
       moment,
       notes: notes.trim() || undefined,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(time).toISOString(),
     });
     navigate({ to: "/" });
   };
