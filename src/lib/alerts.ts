@@ -187,7 +187,7 @@ export function evaluateAlerts(now: Date = new Date()) {
     }
   }
 
-  for (const g of glucose) {
+  for (const g of recentGlucose) {
     if (g.value < 55) {
       fire(`red:critical:${g.id}`, "red", "alertMsg.red.critical", { n: g.value });
     }
