@@ -31,6 +31,16 @@ function SettingsPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (p.rangeMin >= p.rangeMax) {
+      alert("El rango mínimo debe ser menor al máximo.");
+      return;
+    }
+    if (p.icr < 1) { alert("El ICR debe ser al menos 1."); return; }
+    if (p.isf < 1) { alert("El ISF debe ser al menos 1."); return; }
+    if (p.target < p.rangeMin || p.target > p.rangeMax) {
+      alert("La glucosa objetivo debe estar dentro del rango normal.");
+      return;
+    }
     setProfile(p);
     navigate({ to: "/" });
   };
