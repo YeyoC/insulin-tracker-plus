@@ -300,3 +300,13 @@ export const averageDailyLispro = (days = 7): number => {
   return total / days;
 };
 
+export function pruneOldData(daysToKeep = 90) {
+  const cutoff = Date.now() - daysToKeep * 86_400_000;
+  const keep = <T extends { timestamp: string }>(arr: T[]) =>
+    arr.filter((e) => new Date(e.timestamp).getTime() >= cutoff);
+  write(KEYS.glucose, keep(getGlucose()));
+  write(KEYS.insulin, keep(getInsulin()));
+  write(KEYS.meals, keep(getMeals()));
+  write(KEYS.exercise, keep(getExercise()));
+}
+

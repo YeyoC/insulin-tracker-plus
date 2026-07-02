@@ -30,8 +30,8 @@ export function calculateDose(opts: {
   mealTime?: Date;
 }): DoseBreakdown {
   const { profile, mealCarbs, currentGlucose, mealTime = new Date() } = opts;
-  const icr = profile.icr || 15;
-  const isf = profile.isf || 50;
+  const icr = Math.max(1, profile.icr || 15);
+  const isf = Math.max(1, profile.isf || 50);
 
   const carbDose = mealCarbs > 0 ? mealCarbs / icr : 0;
   const correctionDose =
