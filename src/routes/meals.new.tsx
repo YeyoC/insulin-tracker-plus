@@ -14,6 +14,7 @@ import {
 } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
+import { calculateDose } from "@/lib/dose";
 
 export const Route = createFileRoute("/meals/new")({
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
@@ -34,6 +35,8 @@ function NewMealPage() {
   const [notes, setNotes] = useState("");
   const [foods, setFoods] = useState<MealFood[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
+  const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
   const icr = profile?.icr ?? 15;
@@ -48,7 +51,7 @@ function NewMealPage() {
       timestamp: new Date(time).toISOString(),
     });
     trackFoodUsage(foods);
-    navigate({ to: "/meals" });
+    setShowSheet(true);
   };
 
   return (
@@ -216,6 +219,118 @@ function NewMealPage() {
             setPickerOpen(false);
           }}
         />,
+        document.body
+      )}
+
+      {showSheet && profile && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
+          onPointerDown={(e) => { if (e.target === e.currentTarget) navigate({ to: "/meals" }); }}
+        >
+          <div
+            className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <h2 className="text-lg font-semibold">Resumen y dosis Lispro</h2>
+              <button onClick={() => navigate({ to: "/meals" })} className="text-muted-foreground" aria-label="Close">
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto p-4">
+              <div className="rounded-xl border border-border bg-card p-3 space-y-1">
+                {foods.map((f, idx) => {
+                  const fc = (f.carbsPer100g * f.grams) / 100;
+                  const prop = total > 0 ? (fc / total) * baseDose : 0;
+                  return (
+                    <div key={idx} className="flex items-baseline justify-between text-sm">
+                      <span>{f.name} · {f.grams}g</span>
+                      <span className="text-muted-foreground">
+                        {Math.round(fc)}g CHO → ~{prop.toFixed(1)}U
+                      </span>
+                    </div>
+                  );
+                })}
+                <div className="mt-2 flex justify-between border-t border-border pt-2 text-sm font-semibold">
+                  <span>Total CHO</span>
+                  <span>{Math.round(total)}g</span>
+                </div>
+              </div>
+
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium">Glucosa actual (opcional)</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  value={sheetGlucose}
+                  onChange={(e) => setSheetGlucose(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="mg/dL"
+                  className="input"
+                />
+              </label>
+
+              {(() => {
+                const bd = calculateDose({
+                  profile,
+                  mealCarbs: total,
+                  currentGlucose: typeof sheetGlucose === "number" ? sheetGlucose : undefined,
+                  mealTime: new Date(time),
+                });
+                return (
+                  <div className="rounded-xl bg-primary p-4 text-primary-foreground space-y-3">
+                    <p className="text-xs uppercase tracking-wide opacity-90">
+                      Dosis Lispro recomendada
+                    </p>
+                    <p className="text-4xl font-bold">
+                      {bd.totalDose}
+                      <span className="ml-1 text-base font-normal opacity-90">U</span>
+                    </p>
+                    <div className="space-y-1 text-sm opacity-95">
+                      <p>Por carbos: {bd.carbDose.toFixed(1)}U</p>
+                      {bd.correctionDose > 0 && (
+                        <p>Corrección: +{bd.correctionDose.toFixed(1)}U</p>
+                      )}
+                      {bd.adjustments.map((a, i) => (
+                        <p key={i}>• {t(a.reasonKey, a.reasonParams)}</p>
+                      ))}
+                    </div>
+                    <p className="text-xs italic opacity-80">
+                      Solo es una sugerencia. Confirma con tu médico.
+                    </p>
+                    <div className="space-y-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate({
+                            to: "/insulin",
+                            search: {
+                              type: "Lispro",
+                              units: bd.totalDose,
+                              mealCarbs: Math.round(total),
+                              fromMeal: true,
+                            },
+                          } as never)
+                        }
+                        className="w-full rounded-xl bg-primary-foreground px-4 py-3 text-sm font-semibold text-primary"
+                      >
+                        Registrar esta dosis Lispro
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate({ to: "/meals" })}
+                        className="w-full rounded-xl border border-primary-foreground/30 px-4 py-3 text-sm font-medium"
+                      >
+                        Omitir por ahora
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>,
         document.body
       )}
     </AppShell>
