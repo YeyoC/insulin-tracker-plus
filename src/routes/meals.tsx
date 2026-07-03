@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Utensils } from "lucide-react";
+import { Plus, Utensils, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SwipeRow } from "@/components/SwipeRow";
 import {
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/meals")({
 function MealsPage() {
   const lang = useLang();
   const [meals, setMeals] = useState<MealEntry[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     const refresh = () => setMeals(getMeals());
@@ -46,31 +47,82 @@ function MealsPage() {
         </div>
       ) : (
         <ul className="mt-5 space-y-2">
-          {meals.map((m) => (
-            <li key={m.id}>
-              <SwipeRow onDelete={() => deleteMeal(m.id)}>
-                <div className="p-4">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-lg font-semibold text-primary">
-                      {Math.round(totalCarbs(m.foods))}{t("meals.carbsUnit")}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(m.timestamp).toLocaleString(locale(lang), {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {m.foods.map((f) => f.name).join(" · ")}
-                  </p>
-                  {m.notes && <p className="mt-1 text-sm">{m.notes}</p>}
-                </div>
-              </SwipeRow>
-            </li>
-          ))}
+          {meals.map((m) => {
+            const isOpen = expandedId === m.id;
+            return (
+              <li key={m.id}>
+                <SwipeRow
+                  onDelete={() => {
+                    if (window.confirm("¿Eliminar este registro?")) deleteMeal(m.id);
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId((prev) => (prev === m.id ? null : m.id))}
+                    className="w-full text-left"
+                  >
+                    <div className="p-4">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-lg font-semibold text-primary">
+                          {Math.round(totalCarbs(m.foods))}{t("meals.carbsUnit")}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(m.timestamp).toLocaleString(locale(lang), {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          <ChevronDown
+                            className={`size-4 text-muted-foreground transition-transform ${
+                              isOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {m.foods.map((f) => f.name).join(" · ")}
+                      </p>
+                      {m.notes && <p className="mt-1 text-sm">{m.notes}</p>}
+                    </div>
+                    {isOpen && (
+                      <div className="border-t border-border px-4 py-3">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-xs text-muted-foreground">
+                              <th className="text-left font-medium">Alimento</th>
+                              <th className="text-right font-medium">Gramos</th>
+                              <th className="text-right font-medium">CHO</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {m.foods.map((f, i) => (
+                              <tr key={i}>
+                                <td className="py-1">{f.name}</td>
+                                <td className="py-1 text-right tabular-nums">{f.grams}g</td>
+                                <td className="py-1 text-right tabular-nums">
+                                  {Math.round((f.carbsPer100g * f.grams) / 100)}g
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="border-t border-border font-semibold">
+                              <td className="pt-2">Total</td>
+                              <td className="pt-2 text-right text-muted-foreground">—</td>
+                              <td className="pt-2 text-right tabular-nums text-primary">
+                                {Math.round(totalCarbs(m.foods))}g
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </button>
+                </SwipeRow>
+              </li>
+            );
+          })}
         </ul>
       )}
     </AppShell>
