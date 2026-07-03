@@ -40,6 +40,7 @@ function GlucosePage() {
       notes: notes.trim() || undefined,
       timestamp: new Date(time).toISOString(),
     });
+    window.dispatchEvent(new CustomEvent("insulina:saved", { detail: { type: "glucose" } }));
     navigate({ to: "/" });
   };
 

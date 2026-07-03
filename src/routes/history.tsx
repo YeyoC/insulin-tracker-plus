@@ -239,6 +239,13 @@ function HistoryPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">{t(`site.${i.site}`)}</p>
                 {i.notes && <p className="mt-1 text-sm">{i.notes}</p>}
+                {i.recommended !== undefined &&
+                  Math.abs(i.units - i.recommended) >= 0.5 && (
+                    <div className="mt-2 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 text-xs text-warning-foreground">
+                      Sugerido: {i.recommended}U → Aplicado: {i.units}U
+                      {i.diffReason ? ` · ${i.diffReason}` : ""}
+                    </div>
+                  )}
               </li>
             ))
           )}

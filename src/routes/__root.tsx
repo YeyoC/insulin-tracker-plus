@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -79,10 +79,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
+      { title: "InsulinaApp" },
       { name: "description", content: "Lovable Generated Project" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
+      { property: "og:title", content: "InsulinaApp — Gestión de insulina" },
       { property: "og:description", content: "Lovable Generated Project" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -118,11 +118,26 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useAlertsEngine();
+  const [savedToast, setSavedToast] = useState(false);
+
+  useEffect(() => {
+    const onSaved = () => {
+      setSavedToast(true);
+      window.setTimeout(() => setSavedToast(false), 2000);
+    };
+    window.addEventListener("insulina:saved", onSaved as EventListener);
+    return () => window.removeEventListener("insulina:saved", onSaved as EventListener);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      {savedToast && (
+        <div className="fixed left-1/2 top-4 z-[10000] -translate-x-1/2 rounded-full bg-success px-4 py-2 text-sm font-medium text-success-foreground shadow-lg">
+          ✓ Guardado
+        </div>
+      )}
     </QueryClientProvider>
   );
 }
