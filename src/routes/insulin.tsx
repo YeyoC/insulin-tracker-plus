@@ -69,6 +69,7 @@ function InsulinPage() {
       recommended,
       diffReason: needsReason ? finalReason : undefined,
     });
+    window.dispatchEvent(new CustomEvent("insulina:saved", { detail: { type: "insulin" } }));
     navigate({ to: "/history" });
   };
 
