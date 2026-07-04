@@ -122,9 +122,35 @@ function SettingsPage() {
         <InventorySection profile={p} update={update} />
 
         <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
+
+        <button
+          type="button"
+          onClick={exportData}
+          className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium"
+        >
+          📦 Exportar mis datos (backup)
+        </button>
       </form>
     </AppShell>
   );
+}
+
+function exportData() {
+  const data = {
+    exportedAt: new Date().toISOString(),
+    profile: localStorage.getItem("insulina:profile"),
+    glucose: localStorage.getItem("insulina:glucose"),
+    insulin: localStorage.getItem("insulina:insulin"),
+    meals: localStorage.getItem("insulina:meals"),
+    exercise: localStorage.getItem("insulina:exercise"),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `InsulinaApp_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function InventorySection({
