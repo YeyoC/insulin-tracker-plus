@@ -403,11 +403,11 @@ function FoodPicker({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
+      className="fixed bottom-0 left-0 right-0 top-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
       onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
+        className="flex h-[85vh] max-h-[680px] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
