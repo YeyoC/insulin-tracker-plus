@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 export type Lang = "es" | "en";
 const KEY = "insulina:lang";
 
-export function getLang(): Lang {
+function detectLang(): Lang {
   if (typeof window === "undefined") return "es";
-  const v = window.localStorage.getItem(KEY);
-  if (v === "es" || v === "en") return v;
-  // default: Spanish
-  return "es";
+  const saved = window.localStorage.getItem(KEY);
+  if (saved === "es" || saved === "en") return saved;
+  return window.navigator?.language?.startsWith("es") ? "es" : "en";
+}
+
+export function getLang(): Lang {
+  return detectLang();
 }
 
 export function setLang(l: Lang) {
