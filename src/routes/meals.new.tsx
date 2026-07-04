@@ -195,16 +195,17 @@ function NewMealPage() {
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={foods.length === 0}
-          className="btn-primary w-full disabled:opacity-50"
-        >
-          {t("newMeal.save")}
-        </button>
       </form>
 
-      {pickerOpen && createPortal(
+      <button
+        type="button"
+        onClick={() => setPickerOpen(true)}
+        className="mt-4 w-full rounded-xl border-2 border-dashed border-secondary py-4 text-sm font-semibold text-secondary hover:bg-accent"
+      >
+        + {t("newMeal.addFood")}
+      </button>
+
+      {mounted && pickerOpen && createPortal(
         <FoodPicker
           onClose={() => setPickerOpen(false)}
           onPick={(food, grams) => {
@@ -218,7 +219,7 @@ function NewMealPage() {
         document.body
       )}
 
-      {showSheet && profile && createPortal(
+      {mounted && showSheet && profile && createPortal(
         <div
           className="fixed inset-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
           onPointerDown={(e) => { if (e.target === e.currentTarget) navigate({ to: "/meals" }); }}
