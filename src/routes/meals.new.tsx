@@ -195,6 +195,13 @@ function NewMealPage() {
           />
         </label>
 
+        <button
+          type="submit"
+          disabled={foods.length === 0}
+          className="btn-primary w-full disabled:opacity-50"
+        >
+          {t("newMeal.save")}
+        </button>
       </form>
 
       <button
