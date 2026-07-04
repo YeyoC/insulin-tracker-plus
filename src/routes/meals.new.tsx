@@ -73,14 +73,8 @@ function NewMealPage() {
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium">{t("newMeal.foods")}</span>
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground"
-            >
-              <Plus className="size-4" /> {t("newMeal.addFood")}
-            </button>
           </div>
+
 
           {foods.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
