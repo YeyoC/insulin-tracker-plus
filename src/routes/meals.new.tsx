@@ -37,6 +37,8 @@ function NewMealPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
   const icr = profile?.icr ?? 15;
@@ -71,14 +73,8 @@ function NewMealPage() {
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium">{t("newMeal.foods")}</span>
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground"
-            >
-              <Plus className="size-4" /> {t("newMeal.addFood")}
-            </button>
           </div>
+
 
           {foods.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
@@ -208,7 +204,15 @@ function NewMealPage() {
         </button>
       </form>
 
-      {pickerOpen && createPortal(
+      <button
+        type="button"
+        onClick={() => setPickerOpen(true)}
+        className="mt-4 w-full rounded-xl border-2 border-dashed border-secondary py-4 text-sm font-semibold text-secondary hover:bg-accent"
+      >
+        + {t("newMeal.addFood")}
+      </button>
+
+      {mounted && pickerOpen && createPortal(
         <FoodPicker
           onClose={() => setPickerOpen(false)}
           onPick={(food, grams) => {
@@ -222,7 +226,7 @@ function NewMealPage() {
         document.body
       )}
 
-      {showSheet && profile && createPortal(
+      {mounted && showSheet && profile && createPortal(
         <div
           className="fixed inset-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
           onPointerDown={(e) => { if (e.target === e.currentTarget) navigate({ to: "/meals" }); }}
@@ -399,11 +403,11 @@ function FoodPicker({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
+      className="fixed bottom-0 left-0 right-0 top-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
       onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
+        className="flex h-[85vh] max-h-[680px] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -504,7 +508,6 @@ function FoodPicker({
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t("newMeal.searchPh")}
                   className="input pl-9 pr-9"
-                  autoFocus
                 />
                 {loading && (
                   <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
