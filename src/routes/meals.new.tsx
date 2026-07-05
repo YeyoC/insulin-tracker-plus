@@ -502,7 +502,7 @@ function FoodPicker({
           </div>
         ) : (
           <>
-            <div className="border-b border-border p-3">
+            <div className="border-b border-border p-3" style={{ borderBottom: "1px solid #e2e8f0" }}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input
