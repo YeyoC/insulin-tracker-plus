@@ -36,7 +36,7 @@ function NewMealPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
-  useEffect(() => { setMounted(true); }, []);
+  
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
   const icr = profile?.icr ?? 15;
