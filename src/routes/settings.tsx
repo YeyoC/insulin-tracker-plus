@@ -25,6 +25,26 @@ function SettingsPage() {
   const [p, setP] = useState<Profile | null>(null);
 
   useEffect(() => setP(getProfile()), []);
+
+  function exportData() {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      version: "1.0",
+      profile: localStorage.getItem("insulina:profile"),
+      glucose: localStorage.getItem("insulina:glucose"),
+      insulin: localStorage.getItem("insulina:insulin"),
+      meals: localStorage.getItem("insulina:meals"),
+      exercise: localStorage.getItem("insulina:exercise"),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `InsulinaApp_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (!p) return null;
 
   const update = <K extends keyof Profile>(k: K, v: Profile[K]) => setP({ ...p, [k]: v });
