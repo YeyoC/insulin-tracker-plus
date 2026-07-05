@@ -412,7 +412,7 @@ function FoodPicker({
         style={{ height: "85vh", maxHeight: "680px", backgroundColor: "#f5f8ff", color: "#1e293b" }}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3" style={{ borderBottom: "1px solid #e2e8f0", backgroundColor: "#f5f8ff" }}>
           <h2 className="text-lg font-semibold">{t("newMeal.addFood")}</h2>
           <button onClick={onClose} aria-label={t("common.close")} className="text-muted-foreground">
             <X className="size-5" />
