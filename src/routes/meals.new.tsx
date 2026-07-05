@@ -332,8 +332,7 @@ function NewMealPage() {
               })()}
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </AppShell>
   );
