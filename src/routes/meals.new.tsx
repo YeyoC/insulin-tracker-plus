@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import { ChevronDown, Globe, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { searchFoods, CATEGORIES, PRELOADED_FOODS, type FoodResult } from "@/lib/foods";
@@ -37,8 +36,7 @@ function NewMealPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
   const icr = profile?.icr ?? 15;
@@ -212,7 +210,7 @@ function NewMealPage() {
         + {t("newMeal.addFood")}
       </button>
 
-      {mounted && pickerOpen && createPortal(
+      {pickerOpen && (
         <FoodPicker
           onClose={() => setPickerOpen(false)}
           onPick={(food, grams) => {
@@ -222,17 +220,17 @@ function NewMealPage() {
             ]);
             setPickerOpen(false);
           }}
-        />,
-        document.body
+        />
       )}
 
-      {mounted && showSheet && profile && createPortal(
+      {showSheet && profile && (
         <div
           className="fixed inset-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
           onPointerDown={(e) => { if (e.target === e.currentTarget) navigate({ to: "/meals" }); }}
         >
           <div
-            className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
+            className="flex w-full max-w-md flex-col rounded-t-2xl sm:rounded-2xl"
+            style={{ maxHeight: "90vh", backgroundColor: "#f5f8ff", color: "#1e293b" }}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -334,8 +332,7 @@ function NewMealPage() {
               })()}
             </div>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </AppShell>
   );
@@ -401,16 +398,21 @@ function FoodPicker({
     if (f) setSelected(f);
   };
 
+  const cardBg = { backgroundColor: "#ffffff", border: "1px solid #e2e8f0" };
+  const accentBg = { backgroundColor: "#e8f0fb" };
+  void cardBg; void accentBg;
+
   return (
     <div
       className="fixed bottom-0 left-0 right-0 top-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
       onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex h-[85vh] max-h-[680px] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
+        className="flex w-full max-w-md flex-col rounded-t-2xl sm:rounded-2xl"
+        style={{ height: "85vh", maxHeight: "680px", backgroundColor: "#f5f8ff", color: "#1e293b" }}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3" style={{ borderBottom: "1px solid #e2e8f0", backgroundColor: "#f5f8ff" }}>
           <h2 className="text-lg font-semibold">{t("newMeal.addFood")}</h2>
           <button onClick={onClose} aria-label={t("common.close")} className="text-muted-foreground">
             <X className="size-5" />
@@ -500,7 +502,7 @@ function FoodPicker({
           </div>
         ) : (
           <>
-            <div className="border-b border-border p-3">
+            <div className="border-b border-border p-3" style={{ borderBottom: "1px solid #e2e8f0" }}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -515,7 +517,7 @@ function FoodPicker({
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3">
+            <div className="flex-1 overflow-y-auto p-3" style={{ backgroundColor: "#f5f8ff" }}>
               {!isSearching && frequent.length > 0 && (
                 <section className="mb-4">
                   <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
