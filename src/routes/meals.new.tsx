@@ -517,7 +517,7 @@ function FoodPicker({
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3">
+            <div className="flex-1 overflow-y-auto p-3" style={{ backgroundColor: "#f5f8ff" }}>
               {!isSearching && frequent.length > 0 && (
                 <section className="mb-4">
                   <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
