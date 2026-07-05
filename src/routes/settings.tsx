@@ -141,15 +141,15 @@ function SettingsPage() {
 
         <InventorySection profile={p} update={update} />
 
-        <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
-
         <button
           type="button"
           onClick={exportData}
-          className="w-full rounded-xl border border-border px-4 py-3 text-sm font-medium"
+          className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium hover:bg-accent"
         >
           📦 Exportar mis datos (backup)
         </button>
+
+        <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
       </form>
     </AppShell>
   );
