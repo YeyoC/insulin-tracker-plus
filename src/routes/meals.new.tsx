@@ -398,13 +398,18 @@ function FoodPicker({
     if (f) setSelected(f);
   };
 
+  const cardBg = { backgroundColor: "#ffffff", border: "1px solid #e2e8f0" };
+  const accentBg = { backgroundColor: "#e8f0fb" };
+  void cardBg; void accentBg;
+
   return (
     <div
       className="fixed bottom-0 left-0 right-0 top-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
       onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex h-[85vh] max-h-[680px] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
+        className="flex w-full max-w-md flex-col rounded-t-2xl sm:rounded-2xl"
+        style={{ height: "85vh", maxHeight: "680px", backgroundColor: "#f5f8ff", color: "#1e293b" }}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
