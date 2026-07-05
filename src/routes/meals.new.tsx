@@ -223,13 +223,14 @@ function NewMealPage() {
         />
       )}
 
-      {mounted && showSheet && profile && createPortal(
+      {showSheet && profile && (
         <div
           className="fixed inset-0 z-[9999] flex items-end bg-black/60 sm:items-center sm:justify-center"
           onPointerDown={(e) => { if (e.target === e.currentTarget) navigate({ to: "/meals" }); }}
         >
           <div
-            className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-background sm:rounded-2xl"
+            className="flex w-full max-w-md flex-col rounded-t-2xl sm:rounded-2xl"
+            style={{ maxHeight: "90vh", backgroundColor: "#f5f8ff", color: "#1e293b" }}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
