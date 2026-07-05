@@ -36,7 +36,6 @@ function NewMealPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
-  const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
