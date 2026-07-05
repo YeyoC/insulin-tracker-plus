@@ -210,7 +210,7 @@ function NewMealPage() {
         + {t("newMeal.addFood")}
       </button>
 
-      {mounted && pickerOpen && createPortal(
+      {pickerOpen && (
         <FoodPicker
           onClose={() => setPickerOpen(false)}
           onPick={(food, grams) => {
@@ -220,8 +220,7 @@ function NewMealPage() {
             ]);
             setPickerOpen(false);
           }}
-        />,
-        document.body
+        />
       )}
 
       {mounted && showSheet && profile && createPortal(
