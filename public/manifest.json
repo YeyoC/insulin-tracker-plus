@@ -1,7 +1,7 @@
 {
   "name": "InsulinaApp",
   "short_name": "InsulinaApp",
-  "description": "Gestión de insulina NPH y Lispro para pacientes diabéticos",
+  "description": "Gestión de insulina NPH y Lispro",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f8ff",
