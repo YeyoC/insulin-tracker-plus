@@ -356,6 +356,10 @@ function FoodPicker({
   }));
   const frequent = useMemo(() => getFrequentFoods(10), []);
 
+  useEffect(() => {
+    if (selected) setGrams(selected.unit === "ml" ? 250 : 100);
+  }, [selected]);
+
   const [results, setResults] = useState<FoodResult[]>(PRELOADED_FOODS);
   const [loading, setLoading] = useState(false);
   const isSearching = query.trim().length > 0;
@@ -428,7 +432,9 @@ function FoodPicker({
               </p>
             </div>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium">{t("newMeal.gramsConsumed")}</span>
+              <span className="mb-1.5 block text-sm font-medium">
+                {selected.unit === "ml" ? "Milliliters (ml)" : "Grams (g)"}
+              </span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -442,13 +448,15 @@ function FoodPicker({
               />
             </label>
             <div className="rounded-lg bg-accent p-3 text-center text-accent-foreground">
-              <span className="text-sm">{t("newMeal.estCarbs")} </span>
+              <span className="text-sm">
+                {selected.unit === "ml" ? "250ml" : "100g"} →{" "}
+              </span>
               <span className="text-xl font-bold">
                 {Math.round(
                   ((typeof grams === "number" ? grams : 0) * selected.carbsPer100g) /
                     100,
                 )}
-                g
+                g CHO
               </span>
             </div>
             <div className="flex gap-2">
