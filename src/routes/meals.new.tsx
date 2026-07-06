@@ -105,7 +105,7 @@ function NewMealPage() {
                   </div>
                   <div className="mt-2 flex items-center gap-3">
                     <label className="flex flex-1 items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{t("newMeal.grams")}</span>
+                      <span className="text-xs text-muted-foreground">{f.unit === "ml" ? "ml" : "g"}</span>
                       <input
                         type="number"
                         inputMode="decimal"
@@ -121,7 +121,7 @@ function NewMealPage() {
                       />
                     </label>
                     <span className="rounded-md bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground">
-                      {Math.round(carbsFor(f))}g
+                      {Math.round(carbsFor(f))}g CHO
                     </span>
                   </div>
                 </li>
@@ -155,7 +155,7 @@ function NewMealPage() {
                 return (
                   <div key={idx} className="text-sm">
                     <div>
-                      {f.name} · {f.grams}g
+                      {f.name} · {f.grams}{f.unit === "ml" ? "ml" : "g"}
                     </div>
                     <div className="opacity-90">
                       {Math.round(foodCarbs)}g CHO → ~
@@ -216,7 +216,7 @@ function NewMealPage() {
           onPick={(food, grams) => {
             setFoods((prev) => [
               ...prev,
-              { name: food.name, carbsPer100g: food.carbsPer100g, grams },
+              { name: food.name, carbsPer100g: food.carbsPer100g, grams, unit: food.unit },
             ]);
             setPickerOpen(false);
           }}
@@ -247,7 +247,7 @@ function NewMealPage() {
                   const prop = total > 0 ? (fc / total) * baseDose : 0;
                   return (
                     <div key={idx} className="flex items-baseline justify-between text-sm">
-                      <span>{f.name} · {f.grams}g</span>
+                      <span>{f.name} · {f.grams}{f.unit === "ml" ? "ml" : "g"}</span>
                       <span className="text-muted-foreground">
                         {Math.round(fc)}g CHO → ~{prop.toFixed(1)}U
                       </span>
@@ -356,6 +356,10 @@ function FoodPicker({
   }));
   const frequent = useMemo(() => getFrequentFoods(10), []);
 
+  useEffect(() => {
+    if (selected) setGrams(selected.unit === "ml" ? 250 : 100);
+  }, [selected]);
+
   const [results, setResults] = useState<FoodResult[]>(PRELOADED_FOODS);
   const [loading, setLoading] = useState(false);
   const isSearching = query.trim().length > 0;
@@ -428,7 +432,9 @@ function FoodPicker({
               </p>
             </div>
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium">{t("newMeal.gramsConsumed")}</span>
+              <span className="mb-1.5 block text-sm font-medium">
+                {selected.unit === "ml" ? "Milliliters (ml)" : "Grams (g)"}
+              </span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -442,13 +448,15 @@ function FoodPicker({
               />
             </label>
             <div className="rounded-lg bg-accent p-3 text-center text-accent-foreground">
-              <span className="text-sm">{t("newMeal.estCarbs")} </span>
+              <span className="text-sm">
+                {selected.unit === "ml" ? "250ml" : "100g"} →{" "}
+              </span>
               <span className="text-xl font-bold">
                 {Math.round(
                   ((typeof grams === "number" ? grams : 0) * selected.carbsPer100g) /
                     100,
                 )}
-                g
+                g CHO
               </span>
             </div>
             <div className="flex gap-2">
