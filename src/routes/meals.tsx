@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Plus, Utensils, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -20,6 +20,8 @@ function MealsPage() {
   const lang = useLang();
   const [meals, setMeals] = useState<MealEntry[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const matches = useMatches();
+  const isChildActive = matches.some((m) => m.routeId === "/meals/new");
 
   useEffect(() => {
     const refresh = () => setMeals(getMeals());
@@ -27,6 +29,10 @@ function MealsPage() {
     window.addEventListener("insulina:update", refresh);
     return () => window.removeEventListener("insulina:update", refresh);
   }, []);
+
+  if (isChildActive) {
+    return <Outlet />;
+  }
 
   return (
     <AppShell>
