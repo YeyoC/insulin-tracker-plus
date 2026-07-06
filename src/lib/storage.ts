@@ -51,6 +51,7 @@ export type MealFood = {
   name: string;
   carbsPer100g: number;
   grams: number;
+  unit?: "g" | "ml";
 };
 
 export type MealEntry = {
