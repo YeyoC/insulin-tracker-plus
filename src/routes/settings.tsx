@@ -29,8 +29,16 @@ function SettingsPage() {
   useLang();
   const navigate = useNavigate();
   const [p, setP] = useState<Profile | null>(null);
+  const [savedDishes, setSavedDishes] = useState<SavedDish[]>([]);
 
   useEffect(() => setP(getProfile()), []);
+  useEffect(() => {
+    setSavedDishes(getSavedDishes());
+    const refresh = () => setSavedDishes(getSavedDishes());
+    window.addEventListener("insulina:update", refresh);
+    return () => window.removeEventListener("insulina:update", refresh);
+  }, []);
+
 
   function exportData() {
     const data = {
