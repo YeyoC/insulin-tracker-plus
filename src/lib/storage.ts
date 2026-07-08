@@ -76,7 +76,16 @@ const KEYS = {
   hydration: "insulina:hydration",
   specialDay: "insulina:specialDay",
   nocturnal: "insulina:nocturnal",
+  dishes: "insulina:dishes",
 };
+
+export type SavedDish = {
+  id: string;
+  name: string;
+  foods: MealFood[];
+  createdAt: string;
+};
+
 
 const isBrowser = () => typeof window !== "undefined";
 
