@@ -293,6 +293,16 @@ function NewMealPage() {
 
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
               <div className="rounded-xl border border-border bg-card p-3 space-y-1">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-base font-bold text-primary">
+                    {dishName || "Your meal"}
+                  </span>
+                  {foods.length > 1 && (
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {foods.length} foods combined
+                    </span>
+                  )}
+                </div>
                 {foods.map((f, idx) => {
                   const fc = (f.carbsPer100g * f.grams) / 100;
                   const prop = total > 0 ? (fc / total) * baseDose : 0;
