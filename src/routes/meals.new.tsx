@@ -40,9 +40,19 @@ function NewMealPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
-  
+  const [dishName, setDishName] = useState("");
+  const [dishSaved, setDishSaved] = useState(false);
+  const [savedDishes, setSavedDishes] = useState<SavedDish[]>([]);
+
+  useEffect(() => {
+    setSavedDishes(getSavedDishes());
+    const refresh = () => setSavedDishes(getSavedDishes());
+    window.addEventListener("insulina:update", refresh);
+    return () => window.removeEventListener("insulina:update", refresh);
+  }, []);
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
+
   const icr = profile?.icr ?? 15;
   const baseDose = total / icr;
 
