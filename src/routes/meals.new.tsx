@@ -82,6 +82,19 @@ function NewMealPage() {
           />
         </label>
 
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">
+            Dish name (optional)
+          </span>
+          <input
+            type="text"
+            value={dishName}
+            onChange={(e) => setDishName(e.target.value)}
+            className="input"
+            placeholder='e.g. "Breakfast: cereal + milk", "Post-gym meal"'
+          />
+        </label>
+
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium">{t("newMeal.foods")}</span>
