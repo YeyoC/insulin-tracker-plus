@@ -7,10 +7,14 @@ import {
   addMeal,
   carbsFor,
   getFrequentFoods,
+  getSavedDishes,
+  saveDish,
   trackFoodUsage,
   totalCarbs,
   type MealFood,
+  type SavedDish,
 } from "@/lib/storage";
+
 import { t, useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
 import { calculateDose } from "@/lib/dose";
