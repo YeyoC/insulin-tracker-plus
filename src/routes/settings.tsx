@@ -1,14 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   averageDailyLispro,
+  deleteSavedDish,
   getProfile,
+  getSavedDishes,
   setProfile,
+  totalCarbs,
   type Profile,
+  type SavedDish,
 } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — InsulinaApp" }] }),
