@@ -321,6 +321,28 @@ function NewMealPage() {
                 </div>
               </div>
 
+              {!dishSaved ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const name =
+                      dishName.trim() ||
+                      foods.map((f) => f.name.split(" ")[0]).join(" + ");
+                    saveDish(name, foods);
+                    setDishSaved(true);
+                  }}
+                  className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium hover:bg-accent"
+                >
+                  💾 Save as dish for next time
+                </button>
+              ) : (
+                <p className="text-center text-sm font-medium text-success">
+                  ✓ Dish saved! You can load it next time.
+                </p>
+              )}
+
+
+
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Glucosa actual (opcional)</span>
                 <input
