@@ -1,14 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   averageDailyLispro,
+  deleteSavedDish,
   getProfile,
+  getSavedDishes,
   setProfile,
+  totalCarbs,
   type Profile,
+  type SavedDish,
 } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — InsulinaApp" }] }),
@@ -23,8 +29,16 @@ function SettingsPage() {
   useLang();
   const navigate = useNavigate();
   const [p, setP] = useState<Profile | null>(null);
+  const [savedDishes, setSavedDishes] = useState<SavedDish[]>([]);
 
   useEffect(() => setP(getProfile()), []);
+  useEffect(() => {
+    setSavedDishes(getSavedDishes());
+    const refresh = () => setSavedDishes(getSavedDishes());
+    window.addEventListener("insulina:update", refresh);
+    return () => window.removeEventListener("insulina:update", refresh);
+  }, []);
+
 
   function exportData() {
     const data = {
@@ -149,7 +163,43 @@ function SettingsPage() {
           📦 Exportar mis datos (backup)
         </button>
 
+        <div className="space-y-3">
+          <h2 className="font-semibold">Saved dishes ({savedDishes.length})</h2>
+          {savedDishes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No saved dishes yet. Save a meal combination to reuse it quickly.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {savedDishes.map((d) => (
+                <li
+                  key={d.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{d.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {d.foods.length} foods · {Math.round(totalCarbs(d.foods))}g CHO total
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`Delete "${d.name}"?`)) deleteSavedDish(d.id);
+                    }}
+                    className="ml-3 text-muted-foreground hover:text-destructive"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
+
       </form>
     </AppShell>
   );

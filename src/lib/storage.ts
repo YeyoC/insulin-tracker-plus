@@ -76,7 +76,16 @@ const KEYS = {
   hydration: "insulina:hydration",
   specialDay: "insulina:specialDay",
   nocturnal: "insulina:nocturnal",
+  dishes: "insulina:dishes",
 };
+
+export type SavedDish = {
+  id: string;
+  name: string;
+  foods: MealFood[];
+  createdAt: string;
+};
+
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -129,6 +138,28 @@ export const addMeal = (e: Omit<MealEntry, "id">) => {
 };
 export const deleteMeal = (id: string) =>
   write(KEYS.meals, getMeals().filter((m) => m.id !== id));
+
+// Saved dishes (reusable food combinations)
+export const getSavedDishes = (): SavedDish[] =>
+  read<SavedDish[]>(KEYS.dishes, []);
+
+export const saveDish = (name: string, foods: MealFood[]) => {
+  const dishes = getSavedDishes();
+  const existing = dishes.findIndex((d) => d.name === name);
+  const dish: SavedDish = {
+    id: existing >= 0 ? dishes[existing].id : crypto.randomUUID(),
+    name,
+    foods,
+    createdAt: new Date().toISOString(),
+  };
+  if (existing >= 0) dishes[existing] = dish;
+  else dishes.unshift(dish);
+  write(KEYS.dishes, dishes.slice(0, 20));
+};
+
+export const deleteSavedDish = (id: string) =>
+  write(KEYS.dishes, getSavedDishes().filter((d) => d.id !== id));
+
 
 // Food usage tracking for frequent foods.
 type FoodUsage = Record<string, { name: string; carbsPer100g: number; count: number }>;

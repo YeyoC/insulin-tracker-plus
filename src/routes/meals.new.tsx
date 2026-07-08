@@ -7,10 +7,14 @@ import {
   addMeal,
   carbsFor,
   getFrequentFoods,
+  getSavedDishes,
+  saveDish,
   trackFoodUsage,
   totalCarbs,
   type MealFood,
+  type SavedDish,
 } from "@/lib/storage";
+
 import { t, useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
 import { calculateDose } from "@/lib/dose";
@@ -36,9 +40,19 @@ function NewMealPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
-  
+  const [dishName, setDishName] = useState("");
+  const [dishSaved, setDishSaved] = useState(false);
+  const [savedDishes, setSavedDishes] = useState<SavedDish[]>([]);
+
+  useEffect(() => {
+    setSavedDishes(getSavedDishes());
+    const refresh = () => setSavedDishes(getSavedDishes());
+    window.addEventListener("insulina:update", refresh);
+    return () => window.removeEventListener("insulina:update", refresh);
+  }, []);
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
+
   const icr = profile?.icr ?? 15;
   const baseDose = total / icr;
 
@@ -65,6 +79,19 @@ function NewMealPage() {
             value={time}
             onChange={(e) => setTime(e.target.value)}
             className="input"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">
+            Dish name (optional)
+          </span>
+          <input
+            type="text"
+            value={dishName}
+            onChange={(e) => setDishName(e.target.value)}
+            className="input"
+            placeholder='e.g. "Breakfast: cereal + milk", "Post-gym meal"'
           />
         </label>
 
@@ -202,6 +229,29 @@ function NewMealPage() {
         </button>
       </form>
 
+      {savedDishes.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Saved dishes
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {savedDishes.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => {
+                  setFoods(d.foods);
+                  setDishName(d.name);
+                }}
+                className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-accent"
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => setPickerOpen(true)}
@@ -209,6 +259,7 @@ function NewMealPage() {
       >
         + {t("newMeal.addFood")}
       </button>
+
 
       {pickerOpen && (
         <FoodPicker
@@ -242,6 +293,16 @@ function NewMealPage() {
 
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
               <div className="rounded-xl border border-border bg-card p-3 space-y-1">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-base font-bold text-primary">
+                    {dishName || "Your meal"}
+                  </span>
+                  {foods.length > 1 && (
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {foods.length} foods combined
+                    </span>
+                  )}
+                </div>
                 {foods.map((f, idx) => {
                   const fc = (f.carbsPer100g * f.grams) / 100;
                   const prop = total > 0 ? (fc / total) * baseDose : 0;
@@ -259,6 +320,28 @@ function NewMealPage() {
                   <span>{Math.round(total)}g</span>
                 </div>
               </div>
+
+              {!dishSaved ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const name =
+                      dishName.trim() ||
+                      foods.map((f) => f.name.split(" ")[0]).join(" + ");
+                    saveDish(name, foods);
+                    setDishSaved(true);
+                  }}
+                  className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium hover:bg-accent"
+                >
+                  💾 Save as dish for next time
+                </button>
+              ) : (
+                <p className="text-center text-sm font-medium text-success">
+                  ✓ Dish saved! You can load it next time.
+                </p>
+              )}
+
+
 
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Glucosa actual (opcional)</span>
