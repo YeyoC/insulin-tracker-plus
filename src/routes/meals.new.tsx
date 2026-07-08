@@ -229,6 +229,29 @@ function NewMealPage() {
         </button>
       </form>
 
+      {savedDishes.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Saved dishes
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {savedDishes.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => {
+                  setFoods(d.foods);
+                  setDishName(d.name);
+                }}
+                className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-accent"
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => setPickerOpen(true)}
@@ -236,6 +259,7 @@ function NewMealPage() {
       >
         + {t("newMeal.addFood")}
       </button>
+
 
       {pickerOpen && (
         <FoodPicker
