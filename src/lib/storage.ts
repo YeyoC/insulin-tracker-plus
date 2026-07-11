@@ -13,11 +13,22 @@ export type Profile = {
   target: number;
   rangeMin: number;
   rangeMax: number;
-  icr: number; // grams of carbs covered by 1U Lispro
+  icr: number; // grams of carbs covered by 1U Lispro (generic fallback)
   isf: number; // mg/dL drop per 1U Lispro
   hydrationGoal?: number; // glasses/day, default 8
   emergencyContact?: EmergencyContact;
   inventory?: Inventory;
+  // Doctor prescription
+  doctorName?: string;
+  lastDoctorVisit?: string; // ISO date string
+  basalInsulinType?: string; // e.g. "NPH", "Glargina", "Detemir", "Degludec"
+  prescribedBasalMorning?: number; // units NPH/basal in the morning
+  prescribedBasalNight?: number;   // units NPH/basal at night
+  prescribedBasalDaily?: number;   // units for once-daily basal
+  rapidInsulinType?: string; // e.g. "Lispro", "Aspart", "Glulisina", "Regular"
+  lisproRatioMorning?: number;   // g CHO per 1U rapid insulin (until 12pm)
+  lisproRatioAfternoon?: number; // g CHO per 1U rapid insulin (12pm-6pm)
+  lisproRatioNight?: number;     // g CHO per 1U rapid insulin (after 6pm)
 };
 
 export type GlucoseEntry = {
@@ -85,7 +96,6 @@ export type SavedDish = {
   foods: MealFood[];
   createdAt: string;
 };
-
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -160,8 +170,7 @@ export const saveDish = (name: string, foods: MealFood[]) => {
 export const deleteSavedDish = (id: string) =>
   write(KEYS.dishes, getSavedDishes().filter((d) => d.id !== id));
 
-
-// Food usage tracking for frequent foods.
+// Food usage tracking for frequent foods
 type FoodUsage = Record<string, { name: string; carbsPer100g: number; count: number }>;
 export const getFoodUsage = (): FoodUsage => read<FoodUsage>(KEYS.foodUsage, {});
 export const trackFoodUsage = (foods: MealFood[]) => {
@@ -341,4 +350,3 @@ export function pruneOldData(daysToKeep = 90) {
   write(KEYS.meals, keep(getMeals()));
   write(KEYS.exercise, keep(getExercise()));
 }
-
