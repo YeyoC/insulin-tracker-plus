@@ -2,6 +2,15 @@ import type { Profile } from "./storage";
 import { getInsulin } from "./storage";
 import { windowFor } from "./insulin";
 
+/** Returns the correct carb-to-insulin ratio based on time of day and doctor's prescription */
+export function getLisproRatio(profile: Profile, mealTime: Date): number {
+  const hour = mealTime.getHours();
+  if (hour < 12 && profile.lisproRatioMorning)    return Math.max(1, profile.lisproRatioMorning);
+  if (hour < 18 && profile.lisproRatioAfternoon)  return Math.max(1, profile.lisproRatioAfternoon);
+  if (profile.lisproRatioNight)                   return Math.max(1, profile.lisproRatioNight);
+  return Math.max(1, profile.icr || 15);
+}
+
 export type DoseAdjustment = {
   factor: number;
   reasonKey: string;
@@ -30,7 +39,7 @@ export function calculateDose(opts: {
   mealTime?: Date;
 }): DoseBreakdown {
   const { profile, mealCarbs, currentGlucose, mealTime = new Date() } = opts;
-  const icr = Math.max(1, profile.icr || 15);
+  const icr = getLisproRatio(profile, mealTime);
   const isf = Math.max(1, profile.isf || 50);
 
   const carbDose = mealCarbs > 0 ? mealCarbs / icr : 0;
