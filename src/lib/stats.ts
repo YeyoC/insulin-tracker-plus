@@ -145,7 +145,7 @@ export const SITES: InsulinSite[] = [
 ];
 
 export function siteUsage(entries: InsulinEntry[]): Record<InsulinSite, number> {
-  const counts = Object.fromEntries(SITES.map((s) => [s, 0])) as Record<
+  const counts = Object.fromEntries(SITES.map((s) => [s, 0])) as Record
     InsulinSite,
     number
   >;
@@ -170,5 +170,56 @@ export function loadStatsData(period: Period) {
   return {
     glucose: filterByPeriod(getGlucose(), period),
     insulin: filterByPeriod(getInsulin(), period),
+  };
+}
+
+export type NphSuggestion = {
+  direction: "increase" | "decrease" | "stable";
+  units: number;
+  reason: string;
+  daysAnalyzed: number;
+  averageFasting: number;
+};
+
+/** Analyzes last 7 days of fasting glucose to suggest NPH adjustment */
+export function analyzeNphPattern(
+  targetMin = 70,
+  targetMax = 130,
+): NphSuggestion | null {
+  const glucose = getGlucose();
+  const sevenDaysAgo = Date.now() - 7 * 86_400_000;
+  const fasting = glucose.filter(
+    (g) =>
+      g.moment === "Fasting" &&
+      new Date(g.timestamp).getTime() >= sevenDaysAgo,
+  );
+  if (fasting.length < 3) return null;
+  const avgVal = fasting.reduce((s, g) => s + g.value, 0) / fasting.length;
+  const daysAnalyzed = fasting.length;
+  const avgRound = Math.round(avgVal);
+  if (avgVal > targetMax + 20) {
+    return {
+      direction: "increase",
+      units: avgVal > targetMax + 50 ? 2 : 1,
+      reason: `Your average fasting glucose this week is ${avgRound} mg/dL — above target.`,
+      daysAnalyzed,
+      averageFasting: avgRound,
+    };
+  }
+  if (avgVal < targetMin - 10) {
+    return {
+      direction: "decrease",
+      units: 1,
+      reason: `Your average fasting glucose this week is ${avgRound} mg/dL — below target.`,
+      daysAnalyzed,
+      averageFasting: avgRound,
+    };
+  }
+  return {
+    direction: "stable",
+    units: 0,
+    reason: `Your fasting glucose average is ${avgRound} mg/dL — within target range.`,
+    daysAnalyzed,
+    averageFasting: avgRound,
   };
 }
