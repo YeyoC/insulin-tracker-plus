@@ -1,21 +1,36 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { addInsulin, type InsulinEntry, type InsulinSite } from "@/lib/storage";
+import { addInsulin, getMeals, totalCarbs, type InsulinSite } from "@/lib/storage";
 import { useProfile } from "@/hooks/useProfile";
-import { calculateDose, DIFF_REASONS } from "@/lib/dose";
+import { calculateDose, getLisproRatio, DIFF_REASONS } from "@/lib/dose";
 import { t, useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/insulin")({
-  head: () => ({ meta: [{ title: "Log insulin — InsulinaApp" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: (search.type as string) || undefined,
+    units: search.units ? Number(search.units) : undefined,
+    mealCarbs: search.mealCarbs ? Number(search.mealCarbs) : undefined,
+    fromMeal: Boolean(search.fromMeal),
+  }),
+  head: () => ({ meta: [{ title: "Insulina — InsulinaApp" }] }),
   component: InsulinPage,
 });
 
-const sites: InsulinSite[] = [
+const INSULIN_GROUPS = [
+  { group: "Acción rápida",     types: ["Lispro", "Aspart", "Glulisina"] },
+  { group: "Acción corta",      types: ["Regular"] },
+  { group: "Acción intermedia", types: ["NPH"] },
+  { group: "Acción larga",      types: ["Glargina", "Detemir", "Degludec"] },
+  { group: "Mezclas",           types: ["70/30 NPH+Regular", "75/25 NPH+Lispro"] },
+];
+const USUAL = ["NPH", "Lispro"];
+const SITES: InsulinSite[] = [
   "Abdomen", "Left thigh", "Right thigh", "Left arm", "Right arm", "Buttock",
 ];
 
-function nowLocalInput() {
+function nowLocal() {
   const d = new Date();
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().slice(0, 16);
@@ -23,201 +38,286 @@ function nowLocalInput() {
 
 function InsulinPage() {
   useLang();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const router    = useRouter();
   const { profile } = useProfile();
-  const [type, setType] = useState<InsulinEntry["type"]>("Lispro");
-  const [units, setUnits] = useState<number | "">("");
-  const [site, setSite] = useState<InsulinSite>("Abdomen");
-  const [time, setTime] = useState<string>(nowLocalInput());
-  const [notes, setNotes] = useState("");
+  const { type: preType, units: preUnits, mealCarbs: preMealCarbs, fromMeal } =
+    Route.useSearch();
 
-  const [mealCarbs, setMealCarbs] = useState<number | "">("");
-  const [currentGlucose, setCurrentGlucose] = useState<number | "">("");
-  const [reason, setReason] = useState<string>("");
-  const [reasonOther, setReasonOther] = useState("");
+  const [selectedType, setSelectedType] = useState<string>(preType ?? "Lispro");
+  const [nphUnits,     setNphUnits]     = useState<number | ("")>("");
+  const [lisproUnits,  setLisproUnits]  = useState<number | ("")>(
+    preType === "Lispro" && preUnits ? preUnits : ""
+  );
+  const [otherUnits,   setOtherUnits]   = useState<number | ("")>(
+    preType && !USUAL.includes(preType) && preUnits ? preUnits : ""
+  );
+  const [site,         setSite]         = useState<InsulinSite>("Abdomen");
+  const [time,         setTime]         = useState(nowLocal());
+  const [notes,        setNotes]        = useState("");
+  const [mealCarbs,    setMealCarbs]    = useState<number | ("")>(preMealCarbs ?? "");
+  const [glucose,      setGlucose]      = useState<number | ("")>("");
+  const [mealNote,     setMealNote]     = useState<string | null>(null);
+  const [reason,       setReason]       = useState("");
+  const [reasonOther,  setReasonOther]  = useState("");
+
+  useEffect(() => {
+    if (preMealCarbs) return;
+    const last = getMeals()[0];
+    if (!last) return;
+    const ageMin = (Date.now() - new Date(last.timestamp).getTime()) / 60000;
+    if (ageMin < 30) {
+      setMealCarbs(Math.round(totalCarbs(last.foods)));
+      setMealNote(`Carbos de tu última comida (hace ${Math.round(ageMin)} min)`);
+    }
+  }, []);
 
   const breakdown = useMemo(() => {
-    if (!profile || type !== "Lispro") return null;
+    if (!profile) return null;
     const carbs = typeof mealCarbs === "number" ? mealCarbs : 0;
-    if (carbs <= 0 && typeof currentGlucose !== "number") return null;
+    if (carbs <= 0 && typeof glucose !== "number") return null;
     return calculateDose({
       profile,
       mealCarbs: carbs,
-      currentGlucose: typeof currentGlucose === "number" ? currentGlucose : undefined,
+      currentGlucose: typeof glucose === "number" ? glucose : undefined,
       mealTime: new Date(time),
     });
-  }, [profile, type, mealCarbs, currentGlucose, time]);
+  }, [profile, mealCarbs, glucose, time]);
 
   const recommended = breakdown?.totalDose;
-  const actual = typeof units === "number" ? units : null;
-  const differs =
-    recommended !== undefined && actual !== null && Math.abs(actual - recommended) >= 0.5;
-  const needsReason = differs;
+  const actual      = typeof lisproUnits === "number" ? lisproUnits : null;
+  const differs     = recommended !== undefined && actual !== null
+    && Math.abs(actual - recommended) >= 0.5;
+  const showOther   = selectedType && !USUAL.includes(selectedType);
+
+  const currentRatio = profile ? getLisproRatio(profile, new Date(time)) : null;
+  const timeSlot = new Date(time).getHours() < 12 ? "mañana"
+    : new Date(time).getHours() < 18 ? "tarde" : "noche";
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (actual === null || actual <= 0) return;
-    if (needsReason && !reason) return;
-    const finalReason =
-      reason === "Other (specify)" ? reasonOther.trim() || "Other" : reason || undefined;
-    addInsulin({
-      type,
-      units: actual,
-      site,
-      notes: notes.trim() || undefined,
-      timestamp: new Date(time).toISOString(),
-      recommended,
-      diffReason: needsReason ? finalReason : undefined,
-    });
+    if (differs && !reason) return;
+    const finalReason = reason === "Other (specify)"
+      ? (reasonOther.trim() || "Other")
+      : (reason || undefined);
+    const ts = new Date(time).toISOString();
+
+    if (typeof nphUnits === "number" && nphUnits > 0)
+      addInsulin({ type: profile?.basalInsulinType || "NPH", units: nphUnits, site,
+        notes: notes.trim() || undefined, timestamp: ts });
+
+    if (typeof lisproUnits === "number" && lisproUnits > 0)
+      addInsulin({ type: profile?.rapidInsulinType || "Lispro", units: lisproUnits, site,
+        notes: notes.trim() || undefined, timestamp: ts,
+        recommended, diffReason: differs ? finalReason : undefined });
+
+    if (showOther && typeof otherUnits === "number" && otherUnits > 0)
+      addInsulin({ type: selectedType, units: otherUnits, site,
+        notes: notes.trim() || undefined, timestamp: ts });
+
     window.dispatchEvent(new CustomEvent("insulina:saved", { detail: { type: "insulin" } }));
-    navigate({ to: "/history" });
+    navigate({ to: "/" });
   };
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">{t("insulin.title")}</h1>
+      <button
+        onClick={() => router.history.back()}
+        className="mb-4 flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
+      >
+        <ChevronLeft className="size-4" /> Atrás
+      </button>
 
-      <form onSubmit={submit} className="mt-6 space-y-5">
+      <h1 className="text-2xl font-bold text-primary">Registrar insulina</h1>
+
+      {fromMeal && (
+        <div className="mt-3 rounded-lg bg-accent p-3 text-sm text-accent-foreground">
+          Pre-llenado desde tu última comida. Revisa la dosis antes de guardar.
+        </div>
+      )}
+
+      <form onSubmit={submit} className="mt-5 space-y-6">
+
         <div>
-          <span className="mb-2 block text-sm font-medium">{t("insulin.type")}</span>
-          <div className="grid grid-cols-2 gap-2">
-            {(["NPH", "Lispro"] as const).map((tp) => (
-              <button
-                key={tp}
-                type="button"
-                onClick={() => setType(tp)}
-                className={`rounded-lg border px-3 py-4 text-base font-semibold transition-colors ${
-                  type === tp
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card hover:bg-accent"
-                }`}
-              >
-                {tp}
-              </button>
+          <span className="mb-2 block text-sm font-medium">Tipo de insulina</span>
+          <div className="space-y-3">
+            {INSULIN_GROUPS.map(({ group, types }) => (
+              <div key={group}>
+                <p className="mb-1.5 text-xs text-muted-foreground">{group}</p>
+                <div className="flex flex-wrap gap-2">
+                  {types.map((tp) => (
+                    <button key={tp} type="button"
+                      onClick={() => setSelectedType(tp)}
+                      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors
+                        ${selectedType === tp
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card hover:bg-accent"}`}>
+                      {USUAL.includes(tp) ? `★ ${tp}` : tp}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
-        {type === "Lispro" && (
-          <section className="rounded-xl border border-border bg-card p-4 space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("insulin.calculator")}
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t("insulin.mealCarbs")}</span>
-                <input
-                  type="number" inputMode="decimal" min={0}
-                  value={mealCarbs}
-                  onChange={(e) => setMealCarbs(e.target.value === "" ? "" : Number(e.target.value))}
-                  className="input"
-                  placeholder="0"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium">{t("insulin.currentGlucose")}</span>
-                <input
-                  type="number" inputMode="numeric" min={0}
-                  value={currentGlucose}
-                  onChange={(e) =>
-                    setCurrentGlucose(e.target.value === "" ? "" : Number(e.target.value))
-                  }
-                  className="input"
-                  placeholder="mg/dL"
-                />
-              </label>
-            </div>
-
-            {breakdown && (
-              <div className="rounded-lg bg-accent p-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {t("insulin.recommendedDose")}
-                </p>
-                <p className="mt-1 text-4xl font-bold text-primary">
-                  {breakdown.totalDose}
-                  <span className="ml-1 text-base font-normal text-muted-foreground">U</span>
-                </p>
-                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  <li>{t("insulin.carbDose")}: {breakdown.carbDose.toFixed(1)}U</li>
-                  <li>{t("insulin.correction")}: {breakdown.correctionDose.toFixed(1)}U</li>
-                  <li>{t("insulin.base")}: {breakdown.baseDose.toFixed(1)}U</li>
-                </ul>
-                {breakdown.adjustments.length > 0 && (
-                  <ul className="mt-2 space-y-1 text-xs font-medium text-secondary">
-                    {breakdown.adjustments.map((a, i) => (
-                      <li key={i}>• {t(a.reasonKey, a.reasonParams)}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">Carbos (g)</span>
+            <input type="number" inputMode="decimal" min={0} value={mealCarbs}
+              onChange={(e) => setMealCarbs(e.target.value === "" ? "" : Number(e.target.value))}
+              className="input" placeholder="0" />
+            {mealNote && (
+              <span className="mt-1 block text-xs text-muted-foreground">{mealNote}</span>
             )}
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">Glucosa (mg/dL)</span>
+            <input type="number" inputMode="numeric" min={0} value={glucose}
+              onChange={(e) => setGlucose(e.target.value === "" ? "" : Number(e.target.value))}
+              className="input" placeholder="mg/dL" />
+          </label>
+        </div>
 
-            <p className="text-xs text-muted-foreground italic">
-              {t("insulin.legal")}
+        <div>
+          <span className="mb-2 block text-sm font-medium">Dosis aplicada</span>
+          <div className="overflow-hidden rounded-xl border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted text-xs text-muted-foreground">
+                  <th className="px-3 py-2 text-left font-medium">Insulina</th>
+                  <th className="px-3 py-2 text-center font-medium">Cantidad</th>
+                  <th className="px-3 py-2 text-center font-medium">Recomendado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-border">
+                  <td className="px-3 py-3">
+                    <span className="font-medium">
+                      ★ {profile?.basalInsulinType || "NPH"}
+                    </span>
+                    {profile?.prescribedBasalMorning && (
+                      <p className="text-xs text-muted-foreground">
+                        Recetado: {profile.prescribedBasalMorning}U mañana
+                        {profile.prescribedBasalNight
+                          ? ` / ${profile.prescribedBasalNight}U noche`
+                          : ""}
+                      </p>
+                    )}
+                    {profile?.prescribedBasalDaily && (
+                      <p className="text-xs text-muted-foreground">
+                        Recetado: {profile.prescribedBasalDaily}U/día
+                      </p>
+                    )}
+                  </td>
+                  <td className="px-3 py-3">
+                    <input type="number" inputMode="decimal" step={0.5} min={0}
+                      value={nphUnits}
+                      onChange={(e) => setNphUnits(e.target.value === "" ? "" : Number(e.target.value))}
+                      className="mx-auto block w-20 rounded-lg border border-border bg-card px-2 py-2 text-center text-base font-semibold"
+                      placeholder="0" />
+                  </td>
+                  <td className="px-3 py-3 text-center text-muted-foreground text-sm">—</td>
+                </tr>
+
+                <tr className="border-t border-border bg-accent/20">
+                  <td className="px-3 py-3">
+                    <span className="font-medium">
+                      ★ {profile?.rapidInsulinType || "Lispro"}
+                    </span>
+                    {currentRatio && (
+                      <p className="text-xs text-muted-foreground">
+                        1U / {currentRatio}g CHO ({timeSlot})
+                      </p>
+                    )}
+                  </td>
+                  <td className="px-3 py-3">
+                    <input type="number" inputMode="decimal" step={0.5} min={0}
+                      value={lisproUnits}
+                      onChange={(e) => setLisproUnits(e.target.value === "" ? "" : Number(e.target.value))}
+                      className="mx-auto block w-20 rounded-lg border border-border bg-card px-2 py-2 text-center text-base font-semibold"
+                      placeholder="0" />
+                  </td>
+                  <td className="px-3 py-3 text-center font-bold text-primary">
+                    {recommended !== undefined ? `${recommended}U` : "—"}
+                  </td>
+                </tr>
+
+                {showOther && (
+                  <tr className="border-t border-border">
+                    <td className="px-3 py-3 font-medium">{selectedType}</td>
+                    <td className="px-3 py-3">
+                      <input type="number" inputMode="decimal" step={0.5} min={0}
+                        value={otherUnits}
+                        onChange={(e) => setOtherUnits(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="mx-auto block w-20 rounded-lg border border-border bg-card px-2 py-2 text-center text-base font-semibold"
+                        placeholder="0" />
+                    </td>
+                    <td className="px-3 py-3 text-center text-muted-foreground text-sm">—</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {breakdown && (
+          <div className="rounded-lg bg-accent p-4 space-y-2">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Desglose {profile?.rapidInsulinType || "Lispro"}
             </p>
-          </section>
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              <li>Por carbos: {breakdown.carbDose.toFixed(1)}U</li>
+              {breakdown.correctionDose > 0 && (
+                <li>Corrección glucosa: +{breakdown.correctionDose.toFixed(1)}U</li>
+              )}
+            </ul>
+            {breakdown.adjustments.length > 0 && (
+              <ul className="space-y-1 text-xs font-medium text-secondary">
+                {breakdown.adjustments.map((a, i) => (
+                  <li key={i}>• {t(a.reasonKey, a.reasonParams)}</li>
+                ))}
+              </ul>
+            )}
+            <div className="border-t border-border pt-2 flex justify-between text-sm font-bold">
+              <span>Total recomendado</span>
+              <span className="text-primary">{breakdown.totalDose}U</span>
+            </div>
+            <p className="text-xs italic text-muted-foreground">
+              Solo es una sugerencia. Confirma con tu médico.
+            </p>
+          </div>
         )}
 
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">
-            {t("insulin.actualUnits")}
-          </span>
-          <input
-            type="number" inputMode="decimal" step={0.5} min={0.5}
-            value={units}
-            onChange={(e) => setUnits(e.target.value === "" ? "" : Number(e.target.value))}
-            required
-            className="input text-2xl font-semibold"
-            placeholder={t("insulin.actualPh")}
-          />
-          {recommended !== undefined && (
-            <span className="mt-1 block text-xs text-muted-foreground">
-              {t("insulin.recommended", { n: recommended })}
-            </span>
-          )}
-        </label>
-
-        {needsReason && (
+        {differs && (
           <div className="rounded-lg border border-warning/40 bg-warning/10 p-4 space-y-3">
             <p className="text-sm font-medium">
-              {t("insulin.differs")}
+              La dosis difiere de la recomendada. ¿Por qué?
             </p>
-            <select
-              required
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="input"
-            >
-              <option value="">{t("insulin.selectReason")}</option>
+            <select required value={reason}
+              onChange={(e) => setReason(e.target.value)} className="input">
+              <option value="">Selecciona un motivo</option>
               {DIFF_REASONS.map((r) => (
                 <option key={r} value={r}>{t(`reason.${r}`)}</option>
               ))}
             </select>
             {reason === "Other (specify)" && (
-              <input
-                value={reasonOther}
+              <input value={reasonOther}
                 onChange={(e) => setReasonOther(e.target.value)}
-                placeholder={t("insulin.specifyReason")}
-                className="input"
-              />
+                placeholder="Especifica el motivo" className="input" />
             )}
           </div>
         )}
 
         <div>
-          <span className="mb-2 block text-sm font-medium">{t("insulin.site")}</span>
+          <span className="mb-2 block text-sm font-medium">Zona de inyección</span>
           <div className="grid grid-cols-2 gap-2">
-            {sites.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSite(s)}
-                className={`rounded-lg border px-3 py-3 text-sm font-medium transition-colors ${
-                  site === s
+            {SITES.map((s) => (
+              <button key={s} type="button" onClick={() => setSite(s)}
+                className={`rounded-lg border px-3 py-3 text-sm font-medium transition-colors
+                  ${site === s
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card hover:bg-accent"
-                }`}
-              >
+                    : "border-border bg-card hover:bg-accent"}`}>
                 {t(`site.${s}`)}
               </button>
             ))}
@@ -225,21 +325,20 @@ function InsulinPage() {
         </div>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">{t("common.time")}</span>
-          <input
-            type="datetime-local"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="input"
-          />
+          <span className="mb-1.5 block text-sm font-medium">Hora de inyección</span>
+          <input type="datetime-local" value={time}
+            onChange={(e) => setTime(e.target.value)} className="input" />
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium">{t("common.notes")}</span>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="input" />
+          <span className="mb-1.5 block text-sm font-medium">Notas (opcional)</span>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
+            rows={2} className="input" />
         </label>
 
-        <button type="submit" className="btn-primary w-full">{t("common.save")}</button>
+        <button type="submit" className="btn-primary w-full">
+          Guardar insulina
+        </button>
       </form>
     </AppShell>
   );
