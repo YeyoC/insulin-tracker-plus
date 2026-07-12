@@ -17,7 +17,7 @@ import {
 
 import { t, useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
-import { calculateDose } from "@/lib/dose";
+import { calculateDose, getLisproRatio } from "@/lib/dose";
 
 export const Route = createFileRoute("/meals/new")({
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
@@ -53,8 +53,8 @@ function NewMealPage() {
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
 
-  const icr = profile?.icr ?? 15;
-  const baseDose = total / icr;
+const icr = profile ? getLisproRatio(profile, new Date(time)) : 15;
+const baseDose = total > 0 ? total / icr : 0;  
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
