@@ -40,7 +40,11 @@ function read(): AlertRecord[] {
 }
 function write(list: AlertRecord[]) {
   if (!isBrowser()) return;
-  window.localStorage.setItem(KEY, JSON.stringify(list));
+  const cutoff = Date.now() - 30 * 86_400_000;
+  const pruned = list
+    .filter((a) => new Date(a.firedAt).getTime() >= cutoff)
+    .slice(0, 500);
+  window.localStorage.setItem(KEY, JSON.stringify(pruned));
   window.dispatchEvent(new Event("insulina:update"));
 }
 
