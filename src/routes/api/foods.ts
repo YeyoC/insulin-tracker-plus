@@ -14,7 +14,24 @@ type FoodOut = {
 };
 
 const CACHE = new Map<string, { at: number; data: FoodOut[] }>();
-const TTL = 10 * 60 * 1000;
+const TTL = 10 * 60 * 1000; // 10 minutes
+const MAX_CACHE = 200;       // max entries — prevents memory DoS
+
+function cacheSet(key: string, data: FoodOut[]) {
+  // If at capacity, delete the oldest entry first
+  if (CACHE.size >= MAX_CACHE) {
+    const oldest = [...CACHE.entries()].sort((a, b) => a[1].at - b[1].at)[0];
+    if (oldest) CACHE.delete(oldest[0]);
+  }
+  CACHE.set(key, { at: Date.now(), data });
+}
+
+function cachePruneExpired() {
+  const now = Date.now();
+  for (const [k, v] of CACHE.entries()) {
+    if (now - v.at >= TTL) CACHE.delete(k);
+  }
+}
 
 async function fetchOff(q: string, signal: AbortSignal): Promise<FoodOut[]> {
   const url =
@@ -66,11 +83,14 @@ export const Route = createFileRoute("/api/foods")({
           });
         }
 
+        // Prune expired entries on every cache miss
+        cachePruneExpired();
+
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 5000);
         try {
           const data = await fetchOff(q, ctrl.signal);
-          CACHE.set(q, { at: Date.now(), data });
+          cacheSet(q, data);
           return new Response(JSON.stringify(data), {
             headers: { "Content-Type": "application/json", "X-Source": "off" },
           });
