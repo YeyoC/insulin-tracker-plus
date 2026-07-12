@@ -46,6 +46,11 @@ export function DayTimeline({ profile }: { profile: Profile | null }) {
 }
 
 function onDelete(ev: TimelineEvent) {
+  const label =
+    ev.kind === "glucose" ? "esta lectura de glucosa"
+    : ev.kind === "insulin" ? "este registro de insulina"
+    : "esta comida";
+  if (!window.confirm(`¿Eliminar ${label}?`)) return;
   if (ev.kind === "glucose") deleteGlucose(ev.id);
   if (ev.kind === "insulin") deleteInsulin(ev.id);
   if (ev.kind === "meal") deleteMeal(ev.id);
