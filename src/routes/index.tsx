@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { DayTimeline } from "@/components/DayTimeline";
 import { ActiveInsulinBar } from "@/components/ActiveInsulinBar";
@@ -10,6 +10,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 import { t, locale, useLang } from "@/lib/i18n";
+import { analyzeNphPattern, type NphSuggestion } from "@/lib/stats";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +28,8 @@ function Home() {
   const { profile, ready } = useProfile();
   const [now, setNow] = useState<Date | null>(null);
   const [latest, setLatest] = useState<GlucoseEntry | null>(null);
+  const [nphSuggestion, setNphSuggestion] = useState<NphSuggestion | null>(null);
+  const [prescriptionOpen, setPrescriptionOpen] = useState(false);
 
   useEffect(() => {
     setNow(new Date());
@@ -46,6 +49,12 @@ function Home() {
   useEffect(() => {
     if (ready && !profile) navigate({ to: "/setup" });
   }, [ready, profile, navigate]);
+
+  useEffect(() => {
+    if (profile) {
+      setNphSuggestion(analyzeNphPattern(profile.rangeMin, profile.rangeMax));
+    }
+  }, [profile]);
 
   if (!profile) return null;
 
@@ -124,6 +133,94 @@ function Home() {
         </h2>
         <ActiveInsulinBar />
       </section>
+
+      {/* Prescription summary card */}
+      {(profile.prescribedBasalMorning || profile.prescribedBasalDaily || profile.lisproRatioMorning) && (
+        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+          <button
+            type="button"
+            onClick={() => setPrescriptionOpen((o) => !o)}
+            className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-accent"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium">
+              🩺 Mi receta médica
+              {profile.doctorName && (
+                <span className="text-xs text-muted-foreground">· {profile.doctorName}</span>
+              )}
+            </span>
+            <ChevronDown className={`size-4 text-muted-foreground transition-transform ${prescriptionOpen ? "rotate-180" : ""}`} />
+          </button>
+          {prescriptionOpen && (
+            <div className="border-t border-border px-4 pb-4 pt-3 space-y-2 text-sm">
+              {(profile.prescribedBasalMorning || profile.prescribedBasalNight) && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{profile.basalInsulinType || "NPH"}</span>
+                  <span className="font-medium">
+                    {profile.prescribedBasalMorning}U mañana
+                    {profile.prescribedBasalNight ? ` · ${profile.prescribedBasalNight}U noche` : ""}
+                  </span>
+                </div>
+              )}
+              {profile.prescribedBasalDaily && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{profile.basalInsulinType || "Basal"}</span>
+                  <span className="font-medium">{profile.prescribedBasalDaily}U/día</span>
+                </div>
+              )}
+              {(profile.lisproRatioMorning || profile.lisproRatioAfternoon || profile.lisproRatioNight) && (
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground shrink-0">{profile.rapidInsulinType || "Lispro"}</span>
+                  <span className="font-medium text-right text-xs">
+                    {profile.lisproRatioMorning && `1U/${profile.lisproRatioMorning}g mañana`}
+                    {profile.lisproRatioAfternoon && ` · 1U/${profile.lisproRatioAfternoon}g tarde`}
+                    {profile.lisproRatioNight && ` · 1U/${profile.lisproRatioNight}g noche`}
+                  </span>
+                </div>
+              )}
+              <Link to="/settings" className="flex items-center gap-1 pt-1 text-xs text-primary hover:underline">
+                Editar receta <ChevronRight className="size-3" />
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* NPH adjustment suggestion */}
+      {nphSuggestion && nphSuggestion.direction !== "stable" && (
+        <div className={`mt-4 rounded-xl border p-4 space-y-2 ${
+          nphSuggestion.direction === "increase"
+            ? "border-warning/40 bg-warning/10"
+            : "border-blue-200 bg-blue-50"
+        }`}>
+          <div className="flex items-start gap-2">
+            <span className="shrink-0 text-lg">
+              {nphSuggestion.direction === "increase" ? "📈" : "📉"}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">
+                {nphSuggestion.direction === "increase"
+                  ? "Considera ajustar tu dosis de NPH"
+                  : "Tu NPH podría estar alta"}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{nphSuggestion.reason}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Basado en {nphSuggestion.daysAnalyzed} lecturas en ayuno de los últimos 7 días.
+              </p>
+              {profile.prescribedBasalMorning && (
+                <p className="mt-2 text-xs font-medium">
+                  Tu NPH mañana recetada: {profile.prescribedBasalMorning}U
+                  {nphSuggestion.direction === "increase"
+                    ? ` → podrías intentar ${profile.prescribedBasalMorning + nphSuggestion.units}U`
+                    : ` → podrías intentar ${Math.max(0, profile.prescribedBasalMorning - nphSuggestion.units)}U`}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="rounded-lg border border-border bg-white/60 p-2 text-xs text-muted-foreground">
+            ⚕️ Solo es una sugerencia. Consulta siempre a tu endocrinólogo antes de cambiar tu dosis.
+          </div>
+        </div>
+      )}
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
