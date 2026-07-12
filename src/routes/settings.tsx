@@ -6,6 +6,10 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   averageDailyLispro,
   deleteSavedDish,
+  getExercise,
+  getGlucose,
+  getInsulin,
+  getMeals,
   getProfile,
   getSavedDishes,
   setProfile,
@@ -39,16 +43,15 @@ function SettingsPage() {
     return () => window.removeEventListener("insulina:update", refresh);
   }, []);
 
-
   function exportData() {
     const data = {
       exportedAt: new Date().toISOString(),
       version: "1.0",
-      profile: localStorage.getItem("insulina:profile"),
-      glucose: localStorage.getItem("insulina:glucose"),
-      insulin: localStorage.getItem("insulina:insulin"),
-      meals: localStorage.getItem("insulina:meals"),
-      exercise: localStorage.getItem("insulina:exercise"),
+      profile:  getProfile(),
+      glucose:  getGlucose(),
+      insulin:  getInsulin(),
+      meals:    getMeals(),
+      exercise: getExercise(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
