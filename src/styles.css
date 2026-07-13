@@ -2,6 +2,21 @@
 @source "../src";
 @import "tw-animate-css";
 
+/* iOS/Android optimizations */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+input, button, select, textarea {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
