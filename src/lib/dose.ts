@@ -1,8 +1,7 @@
 import type { Profile } from "./storage";
 import { getInsulin } from "./storage";
-import { windowFor } from "./insulin";
+import { windowFor, PROFILES } from "./insulin";
 
-/** Returns the correct carb-to-insulin ratio based on time of day and doctor's prescription */
 export function getLisproRatio(profile: Profile, mealTime: Date): number {
   const hour = mealTime.getHours();
   if (hour < 12 && profile.lisproRatioMorning)    return Math.max(1, profile.lisproRatioMorning);
@@ -59,7 +58,8 @@ export function calculateDose(opts: {
   const insulin = getInsulin();
   const now = mealTime.getTime();
   for (const e of insulin) {
-    if (e.type !== "NPH") continue;
+    const prof = PROFILES[e.type];
+    if (!prof || prof.category !== "intermediate") continue;
     const w = windowFor(e);
     const minsSince = (now - new Date(e.timestamp).getTime()) / 60_000;
     if (minsSince < 60 || now >= w.end.getTime()) continue;
