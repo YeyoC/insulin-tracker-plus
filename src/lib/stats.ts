@@ -88,7 +88,6 @@ export function avgDailyInsulin(
   return { nph: nph / days, lispro: lispro / days };
 }
 
-/** Returns dates (YYYY-MM-DD) where fasting avg > threshold for 3+ consecutive days. */
 export function highFastingStreak(
   entries: GlucoseEntry[],
   threshold = 150,
@@ -124,7 +123,6 @@ export function highFastingStreak(
   return { hasStreak: best.length >= minStreak, days: best };
 }
 
-/** Returns dates with nocturnal hypoglycemia (10pm-7am, <70 mg/dL). */
 export function nocturnalHypoglycemia(entries: GlucoseEntry[]): string[] {
   const hits: string[] = [];
   for (const e of entries) {
@@ -145,10 +143,7 @@ export const SITES: InsulinSite[] = [
 ];
 
 export function siteUsage(entries: InsulinEntry[]): Record<InsulinSite, number> {
-  const counts = Object.fromEntries(SITES.map((s) => [s, 0])) as Record
-    InsulinSite,
-    number
-  >;
+  const counts = Object.fromEntries(SITES.map((s) => [s, 0])) as Record<InsulinSite, number>;
   for (const e of entries) counts[e.site] = (counts[e.site] ?? 0) + 1;
   return counts;
 }
@@ -181,7 +176,6 @@ export type NphSuggestion = {
   averageFasting: number;
 };
 
-/** Analyzes last 7 days of fasting glucose to suggest NPH adjustment */
 export function analyzeNphPattern(
   targetMin = 70,
   targetMax = 130,
