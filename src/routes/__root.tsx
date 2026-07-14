@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useAlertsEngine } from "../hooks/useAlertsEngine";
 import { t } from "../lib/i18n";
+import { getPin } from "../lib/storage";
 
 function NotFoundComponent() {
   return (
@@ -62,7 +63,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             {t("err.retry")}
           </button>
-          <a
+          
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
@@ -78,15 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "InsulinaApp" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
+      { name: "description", content: "Gestión de insulina para pacientes diabéticos" },
       { property: "og:title", content: "InsulinaApp — Gestión de insulina" },
-      { property: "og:description", content: "Lovable Generated Project" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
       { name: "theme-color", content: "#1A3A5C" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -94,10 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "mobile-web-app-capable", content: "yes" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "apple-touch-icon", href: "/icon-192.png" },
     ],
@@ -110,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <HeadContent />
       </head>
@@ -126,6 +120,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useAlertsEngine();
   const [savedToast, setSavedToast] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
 
   useEffect(() => {
     const onSaved = () => {
@@ -136,9 +133,60 @@ function RootComponent() {
     return () => window.removeEventListener("insulina:saved", onSaved as EventListener);
   }, []);
 
+  const storedPin = getPin();
+  if (storedPin && !unlocked) {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: "1.25rem",
+        backgroundColor: "#f5f8ff", padding: "2rem",
+        paddingTop: "env(safe-area-inset-top, 2rem)",
+        paddingBottom: "env(safe-area-inset-bottom, 2rem)",
+      }}>
+        <p style={{ fontSize: "3rem" }}>💉</p>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#1A3A5C", textAlign: "center" }}>
+          InsulinaApp
+        </h1>
+        <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center" }}>
+          Ingresa tu PIN para continuar
+        </p>
+        <input
+          type="password"
+          inputMode="numeric"
+          maxLength={4}
+          value={pinInput}
+          autoFocus
+          onChange={(e) => {
+            setPinInput(e.target.value);
+            setPinError(false);
+            if (e.target.value.length === 4) {
+              if (e.target.value === storedPin) {
+                setUnlocked(true);
+              } else {
+                setPinError(true);
+                setPinInput("");
+              }
+            }
+          }}
+          style={{
+            width: "8rem", textAlign: "center", fontSize: "1.5rem",
+            letterSpacing: "0.5rem", padding: "0.75rem", minHeight: "44px",
+            border: pinError ? "2px solid #ef4444" : "2px solid #1A6B9A",
+            borderRadius: "0.75rem", outline: "none", backgroundColor: "#ffffff",
+          }}
+          placeholder="••••"
+        />
+        {pinError && (
+          <p style={{ color: "#ef4444", fontSize: "0.75rem" }}>
+            PIN incorrecto. Intenta de nuevo.
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       {savedToast && (
         <div className="fixed left-1/2 top-4 z-[10000] -translate-x-1/2 rounded-full bg-success px-4 py-2 text-sm font-medium text-success-foreground shadow-lg">
