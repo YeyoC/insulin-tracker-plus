@@ -78,16 +78,16 @@ export type TimelineEvent =
   | { kind: "meal"; id: string; timestamp: string; data: MealEntry };
 
 const KEYS = {
-  profile: "insulina:profile",
-  glucose: "insulina:glucose",
-  insulin: "insulina:insulin",
-  meals: "insulina:meals",
-  foodUsage: "insulina:foodUsage",
-  exercise: "insulina:exercise",
-  hydration: "insulina:hydration",
+  profile:    "insulina:profile",
+  glucose:    "insulina:glucose",
+  insulin:    "insulina:insulin",
+  meals:      "insulina:meals",
+  foodUsage:  "insulina:foodUsage",
+  exercise:   "insulina:exercise",
+  hydration:  "insulina:hydration",
   specialDay: "insulina:specialDay",
-  nocturnal: "insulina:nocturnal",
-  dishes: "insulina:dishes",
+  nocturnal:  "insulina:nocturnal",
+  dishes:     "insulina:dishes",
 };
 
 export type SavedDish = {
@@ -149,7 +149,7 @@ export const addMeal = (e: Omit<MealEntry, "id">) => {
 export const deleteMeal = (id: string) =>
   write(KEYS.meals, getMeals().filter((m) => m.id !== id));
 
-// Saved dishes (reusable food combinations)
+// Saved dishes (reusable food combinations / platillos)
 export const getSavedDishes = (): SavedDish[] =>
   read<SavedDish[]>(KEYS.dishes, []);
 
@@ -350,3 +350,18 @@ export function pruneOldData(daysToKeep = 90) {
   write(KEYS.meals, keep(getMeals()));
   write(KEYS.exercise, keep(getExercise()));
 }
+
+// ===== PIN lock =====
+const PIN_KEY = "insulina:pin";
+export const getPin = (): string | null => {
+  if (!isBrowser()) return null;
+  return window.localStorage.getItem(PIN_KEY);
+};
+export const setPin = (pin: string): void => {
+  if (!isBrowser()) return;
+  window.localStorage.setItem(PIN_KEY, pin);
+};
+export const clearPin = (): void => {
+  if (!isBrowser()) return;
+  window.localStorage.removeItem(PIN_KEY);
+};
