@@ -63,7 +63,16 @@ function HistoryPage() {
     () => glucoseStats(periodGlucose, profile?.rangeMin ?? 70, profile?.rangeMax ?? 180),
     [periodGlucose, profile],
   );
-  const ins = useMemo(() => avgDailyInsulin(periodInsulin, period), [periodInsulin, period]);
+  const ins = useMemo(
+    () =>
+      avgDailyInsulin(
+        periodInsulin,
+        period,
+        profile?.basalInsulinType ?? "NPH",
+        profile?.rapidInsulinType ?? "Lispro",
+      ),
+    [periodInsulin, period, profile],
+  );
   const fastingStreak = useMemo(() => highFastingStreak(periodGlucose), [periodGlucose]);
   const nocturnal = useMemo(() => nocturnalHypoglycemia(periodGlucose), [periodGlucose]);
   const usage = useMemo(() => siteUsage(periodInsulin), [periodInsulin]);
