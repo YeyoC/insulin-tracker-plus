@@ -52,9 +52,8 @@ function NewMealPage() {
   }, []);
 
   const total = useMemo(() => totalCarbs(foods), [foods]);
-
-const icr = profile ? getLisproRatio(profile, new Date(time)) : 15;
-const baseDose = total > 0 ? total / icr : 0;  
+  const icr = profile ? getLisproRatio(profile, new Date(time)) : 15;
+  const baseDose = total > 0 ? total / icr : 0;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
