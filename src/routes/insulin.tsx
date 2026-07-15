@@ -6,6 +6,7 @@ import { addInsulin, getMeals, totalCarbs, type InsulinSite } from "@/lib/storag
 import { useProfile } from "@/hooks/useProfile";
 import { calculateDose, getLisproRatio, DIFF_REASONS } from "@/lib/dose";
 import { t, useLang } from "@/lib/i18n";
+import { INSULIN_CATALOG, PROFILES, USUAL_TYPES } from "@/lib/insulin";
 
 export const Route = createFileRoute("/insulin")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -18,14 +19,8 @@ export const Route = createFileRoute("/insulin")({
   component: InsulinPage,
 });
 
-const INSULIN_GROUPS = [
-  { group: "Acción rápida",     types: ["Lispro", "Aspart", "Glulisina"] },
-  { group: "Acción corta",      types: ["Regular"] },
-  { group: "Acción intermedia", types: ["NPH"] },
-  { group: "Acción larga",      types: ["Glargina", "Detemir", "Degludec"] },
-  { group: "Mezclas",           types: ["70/30 NPH+Regular", "75/25 NPH+Lispro"] },
-];
-const USUAL = ["NPH", "Lispro"];
+const INSULIN_GROUPS = INSULIN_CATALOG.map((cat) => ({ group: cat.category, types: [...cat.types] }));
+const USUAL = USUAL_TYPES;
 const SITES: InsulinSite[] = [
   "Abdomen", "Left thigh", "Right thigh", "Left arm", "Right arm", "Buttock",
 ];
@@ -148,6 +143,7 @@ function InsulinPage() {
                   {types.map((tp) => (
                     <button key={tp} type="button"
                       onClick={() => setSelectedType(tp)}
+                      title={PROFILES[tp]?.brandNames?.join(" · ")}
                       className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors
                         ${selectedType === tp
                           ? "border-primary bg-primary text-primary-foreground"
