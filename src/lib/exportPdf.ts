@@ -26,7 +26,12 @@ export function exportReport({
   const now = new Date();
   const start = periodStart(period, now);
   const stats = glucoseStats(glucose, profile?.rangeMin ?? 70, profile?.rangeMax ?? 180);
-  const ins = avgDailyInsulin(insulin, period);
+  const ins = avgDailyInsulin(
+    insulin,
+    period,
+    profile?.basalInsulinType ?? "NPH",
+    profile?.rapidInsulinType ?? "Lispro",
+  );
   const usage = siteUsage(insulin);
 
   let y = 14;
