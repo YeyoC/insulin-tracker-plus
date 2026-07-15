@@ -5,19 +5,23 @@ import { AppShell } from "@/components/AppShell";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   averageDailyLispro,
+  clearPin,
   deleteSavedDish,
   getExercise,
   getGlucose,
   getInsulin,
   getMeals,
+  getPin,
   getProfile,
   getSavedDishes,
+  setPin,
   setProfile,
   totalCarbs,
   type Profile,
   type SavedDish,
 } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
+import { INSULIN_CATALOG } from "@/lib/insulin";
 
 
 export const Route = createFileRoute("/settings")({
@@ -158,6 +162,10 @@ function SettingsPage() {
 
         <InventorySection profile={p} update={update} />
 
+        <PrescriptionSection profile={p} update={update} />
+
+        <PinSection />
+
         <button
           type="button"
           onClick={exportData}
@@ -278,6 +286,292 @@ function InventorySection({
           </p>
         )}
       </div>
+    </fieldset>
+  );
+}
+
+const RAPID_TYPES: string[] = [
+  ...(INSULIN_CATALOG.find((c) => (c.types as readonly string[]).includes("Lispro"))?.types ??
+    ["Lispro", "Aspart", "Glulisina", "Regular"]),
+];
+const LONG_ACTING_TYPES: string[] = [
+  ...(INSULIN_CATALOG.find((c) => (c.types as readonly string[]).includes("Glargina"))?.types ??
+    ["Glargina", "Detemir", "Degludec"]),
+];
+const BASAL_TYPES: string[] = ["NPH", ...LONG_ACTING_TYPES, "Ninguna"];
+const ONCE_DAILY_BASAL = new Set(LONG_ACTING_TYPES);
+
+function PrescriptionSection({
+  profile,
+  update,
+}: {
+  profile: Profile;
+  update: <K extends keyof Profile>(k: K, v: Profile[K]) => void;
+}) {
+  const basalType = profile.basalInsulinType || "Ninguna";
+  const rapidType = profile.rapidInsulinType || "Lispro";
+  const isOnceDaily = ONCE_DAILY_BASAL.has(basalType);
+
+  // Corn Flakes 100g = 84g CHO, live example using the morning ratio
+  const exampleCarbs = 84;
+  const exampleRatio = Math.max(1, profile.lisproRatioMorning || profile.icr || 15);
+  const exampleUnits = exampleCarbs / exampleRatio;
+
+  return (
+    <fieldset className="rounded-xl border border-border p-4 space-y-4">
+      <legend className="px-2 text-sm font-semibold text-primary">Receta médica</legend>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Nombre del médico">
+          <input
+            value={profile.doctorName ?? ""}
+            onChange={(e) => update("doctorName", e.target.value)}
+            className="input"
+          />
+        </Field>
+        <Field label="Última visita">
+          <input
+            type="date"
+            value={profile.lastDoctorVisit ?? ""}
+            onChange={(e) => update("lastDoctorVisit", e.target.value)}
+            className="input"
+          />
+        </Field>
+      </div>
+
+      <div>
+        <span className="mb-2 block text-sm font-medium">Insulina basal</span>
+        <div className="flex flex-wrap gap-2">
+          {BASAL_TYPES.map((tp) => (
+            <button
+              key={tp}
+              type="button"
+              onClick={() => update("basalInsulinType", tp === "Ninguna" ? undefined : tp)}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors
+                ${basalType === tp
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card hover:bg-accent"}`}
+            >
+              {tp}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {basalType !== "Ninguna" && (
+        isOnceDaily ? (
+          <Field label="Dosis diaria (U)">
+            <input
+              type="number"
+              min={0}
+              value={profile.prescribedBasalDaily ?? ""}
+              onChange={(e) =>
+                update("prescribedBasalDaily", e.target.value === "" ? undefined : Number(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Dosis mañana (U)">
+              <input
+                type="number"
+                min={0}
+                value={profile.prescribedBasalMorning ?? ""}
+                onChange={(e) =>
+                  update("prescribedBasalMorning", e.target.value === "" ? undefined : Number(e.target.value))
+                }
+                className="input"
+              />
+            </Field>
+            <Field label="Dosis noche (U)">
+              <input
+                type="number"
+                min={0}
+                value={profile.prescribedBasalNight ?? ""}
+                onChange={(e) =>
+                  update("prescribedBasalNight", e.target.value === "" ? undefined : Number(e.target.value))
+                }
+                className="input"
+              />
+            </Field>
+          </div>
+        )
+      )}
+
+      <div>
+        <span className="mb-2 block text-sm font-medium">Insulina rápida</span>
+        <div className="flex flex-wrap gap-2">
+          {RAPID_TYPES.map((tp) => (
+            <button
+              key={tp}
+              type="button"
+              onClick={() => update("rapidInsulinType", tp)}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors
+                ${rapidType === tp
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card hover:bg-accent"}`}
+            >
+              {tp}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="Ratio mañana (g/U)">
+          <input
+            type="number"
+            min={1}
+            value={profile.lisproRatioMorning ?? ""}
+            onChange={(e) =>
+              update("lisproRatioMorning", e.target.value === "" ? undefined : Number(e.target.value))
+            }
+            className="input"
+          />
+        </Field>
+        <Field label="Ratio tarde (g/U)">
+          <input
+            type="number"
+            min={1}
+            value={profile.lisproRatioAfternoon ?? ""}
+            onChange={(e) =>
+              update("lisproRatioAfternoon", e.target.value === "" ? undefined : Number(e.target.value))
+            }
+            className="input"
+          />
+        </Field>
+        <Field label="Ratio noche (g/U)">
+          <input
+            type="number"
+            min={1}
+            value={profile.lisproRatioNight ?? ""}
+            onChange={(e) =>
+              update("lisproRatioNight", e.target.value === "" ? undefined : Number(e.target.value))
+            }
+            className="input"
+          />
+        </Field>
+      </div>
+
+      <div className="rounded-lg bg-accent p-3 text-sm text-accent-foreground">
+        Corn Flakes 100g = {exampleCarbs}g CHO → {exampleUnits.toFixed(1)}U
+      </div>
+    </fieldset>
+  );
+}
+
+function PinSection() {
+  const [pin, setPinState] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => setPinState(getPin()), []);
+
+  const isValidPin = (v: string) => /^\d{4}$/.test(v);
+
+  const save = () => {
+    if (!isValidPin(newPin) || !isValidPin(confirmPin)) {
+      setError("El PIN debe tener exactamente 4 dígitos.");
+      return;
+    }
+    if (newPin !== confirmPin) {
+      setError("Los PINs no coinciden.");
+      return;
+    }
+    setPin(newPin);
+    setPinState(newPin);
+    setEditing(false);
+    setNewPin("");
+    setConfirmPin("");
+    setError(null);
+  };
+
+  const remove = () => {
+    clearPin();
+    setPinState(null);
+    setEditing(false);
+    setNewPin("");
+    setConfirmPin("");
+    setError(null);
+  };
+
+  return (
+    <fieldset className="rounded-xl border border-border p-4 space-y-4">
+      <legend className="px-2 text-sm font-semibold text-primary">Bloqueo con PIN</legend>
+
+      {pin && !editing ? (
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">PIN activo ••••</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:bg-accent"
+            >
+              Cambiar PIN
+            </button>
+            <button
+              type="button"
+              onClick={remove}
+              className="rounded-lg border border-danger/40 px-3 py-1.5 text-sm font-medium text-danger hover:bg-danger/10"
+            >
+              Quitar PIN
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Nuevo PIN">
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+                className="input"
+              />
+            </Field>
+            <Field label="Confirmar PIN">
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
+                className="input"
+              />
+            </Field>
+          </div>
+          {error && <p className="text-sm text-danger">{error}</p>}
+          <div className="flex gap-2">
+            {editing && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(false);
+                  setNewPin("");
+                  setConfirmPin("");
+                  setError(null);
+                }}
+                className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:bg-accent"
+              >
+                Cancelar
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={save}
+              className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+            >
+              Guardar PIN
+            </button>
+          </div>
+        </div>
+      )}
     </fieldset>
   );
 }
