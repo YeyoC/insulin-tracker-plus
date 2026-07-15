@@ -18,17 +18,12 @@ import {
 import { t, useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
 import { calculateDose, getLisproRatio } from "@/lib/dose";
+import { nowLocalInput } from "@/lib/utils";
 
 export const Route = createFileRoute("/meals/new")({
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
   component: NewMealPage,
 });
-
-function nowLocalInput() {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
-}
 
 function NewMealPage() {
   useLang();
