@@ -16,6 +16,7 @@ type FoodOut = {
 const CACHE = new Map<string, { at: number; data: FoodOut[] }>();
 const TTL = 10 * 60 * 1000; // 10 minutes
 const MAX_CACHE = 200;       // max entries — prevents memory DoS
+const MAX_QUERY_LENGTH = 80; // max chars per query — prevents oversized cache entries
 
 function cacheSet(key: string, data: FoodOut[]) {
   // If at capacity, delete the oldest entry first
@@ -74,6 +75,12 @@ export const Route = createFileRoute("/api/foods")({
           return new Response("[]", {
             headers: { "Content-Type": "application/json" },
           });
+        }
+        if (q.length > MAX_QUERY_LENGTH) {
+          return new Response(
+            JSON.stringify({ error: "Query too long" }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         const cached = CACHE.get(q);
