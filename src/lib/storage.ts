@@ -333,8 +333,10 @@ export const getNocturnalHistory = () =>
 export const averageDailyLispro = (days = 7): number => {
   const now = Date.now();
   const cutoff = now - days * 86_400_000;
+  const profile = getProfile();
+  const rapidType = profile?.rapidInsulinType ?? "Lispro";
   const recent = getInsulin().filter(
-    (i) => i.type === "Lispro" && new Date(i.timestamp).getTime() >= cutoff,
+    (i) => i.type === rapidType && new Date(i.timestamp).getTime() >= cutoff,
   );
   if (recent.length === 0) return 0;
   const total = recent.reduce((s, i) => s + i.units, 0);
