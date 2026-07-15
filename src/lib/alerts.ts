@@ -5,6 +5,7 @@ import {
   getHydration,
   getInsulin,
   getMeals,
+  getProfile,
   getSpecialDay,
 } from "./storage";
 import { PROFILES, windowFor, formatTime } from "./insulin";
@@ -121,6 +122,9 @@ export function evaluateAlerts(now: Date = new Date()) {
   const insulin = getInsulin();
   const glucose = getGlucose();
   const meals = getMeals();
+  const profile = getProfile();
+  const basalType = profile?.basalInsulinType ?? "NPH";
+  const rapidType = profile?.rapidInsulinType ?? "Lispro";
 
   const lastMealAt = meals[0] ? new Date(meals[0].timestamp).getTime() : 0;
   const minsSinceMeal = (now.getTime() - lastMealAt) / MIN;
@@ -131,7 +135,7 @@ export function evaluateAlerts(now: Date = new Date()) {
   );
 
   for (const e of insulin) {
-    if (e.type !== "NPH") continue;
+    if (e.type !== basalType) continue;
     const w = windowFor(e);
     const minsToPeak = (w.peakStart.getTime() - now.getTime()) / MIN;
     if (minsToPeak <= 30 && minsToPeak >= 0 && minsSinceMeal > 120) {
@@ -150,7 +154,7 @@ export function evaluateAlerts(now: Date = new Date()) {
     const minsSince = (now.getTime() - mt) / MIN;
     if (minsSince < 120 || minsSince > 180) continue;
     const hasLispro = insulin.some((i) => {
-      if (i.type !== "Lispro") return false;
+      if (i.type !== rapidType) return false;
       const diff = Math.abs(new Date(i.timestamp).getTime() - mt) / MIN;
       return diff <= 30;
     });
@@ -161,7 +165,7 @@ export function evaluateAlerts(now: Date = new Date()) {
   }
 
   for (const e of insulin) {
-    if (e.type !== "NPH") continue;
+    if (e.type !== basalType) continue;
     const w = windowFor(e);
     const tt = now.getTime();
     const active = tt >= new Date(e.timestamp).getTime() && tt < w.end.getTime();
