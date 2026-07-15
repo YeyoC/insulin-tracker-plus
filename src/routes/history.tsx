@@ -1,13 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Download, AlertTriangle, Moon } from "lucide-react";
+import { Download, AlertTriangle, Moon, ChevronDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
+  carbsFor,
   getGlucose,
   getInsulin,
+  getMeals,
   glucoseStatus,
+  totalCarbs,
   type GlucoseEntry,
   type InsulinEntry,
+  type MealEntry,
 } from "@/lib/storage";
 import { useProfile } from "@/hooks/useProfile";
 import {
@@ -23,14 +27,14 @@ import {
 import { GlucoseTrendChart } from "@/components/GlucoseTrendChart";
 import { InjectionSiteMap } from "@/components/InjectionSiteMap";
 import { exportReport } from "@/lib/exportPdf";
-import { t, locale, useLang } from "@/lib/i18n";
+import { t, locale, useLang, type Lang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/history")({
   head: () => ({ meta: [{ title: "History — InsulinaApp" }] }),
   component: HistoryPage,
 });
 
-type Tab = "stats" | "glucose" | "insulin";
+type Tab = "stats" | "glucose" | "insulin" | "meals";
 
 function HistoryPage() {
   const lang = useLang();
@@ -39,11 +43,13 @@ function HistoryPage() {
   const [period, setPeriod] = useState<Period>("week");
   const [glucose, setGlucose] = useState<GlucoseEntry[]>([]);
   const [insulin, setInsulin] = useState<InsulinEntry[]>([]);
+  const [meals, setMeals] = useState<MealEntry[]>([]);
 
   useEffect(() => {
     const refresh = () => {
       setGlucose(getGlucose());
       setInsulin(getInsulin());
+      setMeals(getMeals());
     };
     refresh();
     window.addEventListener("insulina:update", refresh);
@@ -63,12 +69,25 @@ function HistoryPage() {
   const usage = useMemo(() => siteUsage(periodInsulin), [periodInsulin]);
   const topSite = useMemo(() => mostUsedSite(periodInsulin), [periodInsulin]);
 
+  const mealsByDay = useMemo(() => {
+    const groups = new Map<string, MealEntry[]>();
+    for (const m of meals) {
+      const d = new Date(m.timestamp);
+      const key = d.toLocaleDateString(locale(lang), {
+        weekday: "long", day: "numeric", month: "long",
+      });
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(m);
+    }
+    return Array.from(groups.entries());
+  }, [meals, lang]);
+
   return (
     <AppShell>
       <h1 className="text-2xl font-bold text-primary">{t("history.title")}</h1>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-muted p-1">
-        {(["stats", "glucose", "insulin"] as Tab[]).map((tp) => (
+      <div className="mt-4 grid grid-cols-4 gap-2 rounded-lg bg-muted p-1">
+        {(["stats", "glucose", "insulin", "meals"] as Tab[]).map((tp) => (
           <button
             key={tp}
             onClick={() => setTab(tp)}
@@ -251,7 +270,89 @@ function HistoryPage() {
           )}
         </ul>
       )}
+
+      {tab === "meals" && (
+        <div className="mt-5 space-y-5">
+          {meals.length === 0 ? (
+            <ul>
+              <Empty label={t("history.noMeals")} />
+            </ul>
+          ) : (
+            mealsByDay.map(([day, dayMeals]) => (
+              <section key={day}>
+                <h2 className="mb-2 text-sm font-semibold capitalize text-primary">{day}</h2>
+                <ul className="space-y-2">
+                  {dayMeals.map((m) => (
+                    <MealRow key={m.id} meal={m} lang={lang} />
+                  ))}
+                </ul>
+              </section>
+            ))
+          )}
+        </div>
+      )}
     </AppShell>
+  );
+}
+
+function MealRow({ meal, lang }: { meal: MealEntry; lang: Lang }) {
+  const [open, setOpen] = useState(false);
+  const total = totalCarbs(meal.foods);
+  const title = meal.notes?.trim() || meal.foods.map((f) => f.name).join(", ");
+
+  return (
+    <li className="rounded-xl border border-border bg-card p-4">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-start justify-between gap-2 text-left"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">{title}</p>
+          <p className="text-xs text-muted-foreground">
+            {new Date(meal.timestamp).toLocaleString(locale(lang), {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-md bg-accent px-2 py-1 text-sm font-semibold text-accent-foreground">
+            {Math.round(total)}g CHO
+          </span>
+          <ChevronDown
+            className={`size-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
+
+      {open && (
+        <div className="mt-3 overflow-hidden rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted text-xs text-muted-foreground">
+                <th className="px-3 py-2 text-left font-medium">Food</th>
+                <th className="px-3 py-2 text-center font-medium">Amount</th>
+                <th className="px-3 py-2 text-center font-medium">CHO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {meal.foods.map((f, idx) => (
+                <tr key={idx} className="border-t border-border">
+                  <td className="px-3 py-2">{f.name}</td>
+                  <td className="px-3 py-2 text-center">
+                    {f.grams}{f.unit === "ml" ? "ml" : "g"}
+                  </td>
+                  <td className="px-3 py-2 text-center font-medium">
+                    {Math.round(carbsFor(f))}g
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </li>
   );
 }
 
