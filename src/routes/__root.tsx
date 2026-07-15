@@ -17,7 +17,7 @@ import { getPin } from "../lib/storage";
  
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">{t("err.404")}</h2>
@@ -45,7 +45,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
  
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {t("err.failed")}
@@ -123,7 +123,9 @@ function RootComponent() {
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
- 
+  // `null` = "aún no sabemos" (coincide en servidor y cliente); string | false = ya resuelto.
+  const [storedPin, setStoredPin] = useState<string | null | false>(null);
+
   useEffect(() => {
     const onSaved = () => {
       setSavedToast(true);
@@ -132,8 +134,27 @@ function RootComponent() {
     window.addEventListener("insulina:saved", onSaved as EventListener);
     return () => window.removeEventListener("insulina:saved", onSaved as EventListener);
   }, []);
- 
-  const storedPin = getPin();
+
+  useEffect(() => {
+    // Se ejecuta solo en el cliente, después de hidratar — nunca en SSR.
+    setStoredPin(getPin() ?? false);
+  }, []);
+
+  // Mientras no sepamos si hay PIN, no renderizamos nada (ni el shell real ni la
+  // pantalla de bloqueo): así el HTML del cliente coincide con el del servidor
+  // y los datos sensibles nunca llegan al DOM antes de verificar el PIN.
+  if (storedPin === null) {
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "#f5f8ff",
+        }}
+      />
+    );
+  }
+
   if (storedPin && !unlocked) {
     return (
       <div style={{
@@ -196,4 +217,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
- 
