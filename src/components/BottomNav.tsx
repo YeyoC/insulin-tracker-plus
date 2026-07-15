@@ -29,7 +29,10 @@ export function BottomNav() {
   }, []);
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card">
+    <nav
+      className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
       <ul className="mx-auto flex max-w-md">
         {tabs.map(({ to, key, icon: Icon }) => (
           <li key={to} className="flex-1">
