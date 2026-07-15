@@ -7,13 +7,21 @@ import { useProfile } from "@/hooks/useProfile";
 import { calculateDose, getLisproRatio, DIFF_REASONS } from "@/lib/dose";
 import { t, useLang } from "@/lib/i18n";
 import { INSULIN_CATALOG, PROFILES, USUAL_TYPES } from "@/lib/insulin";
+import { nowLocalInput } from "@/lib/utils";
+
+type InsulinSearch = {
+  type?: string;
+  units?: number;
+  mealCarbs?: number;
+  fromMeal?: boolean;
+};
 
 export const Route = createFileRoute("/insulin")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): InsulinSearch => ({
     type: (search.type as string) || undefined,
     units: search.units ? Number(search.units) : undefined,
     mealCarbs: search.mealCarbs ? Number(search.mealCarbs) : undefined,
-    fromMeal: Boolean(search.fromMeal),
+    fromMeal: search.fromMeal ? true : undefined,
   }),
   head: () => ({ meta: [{ title: "Insulina — InsulinaApp" }] }),
   component: InsulinPage,
@@ -24,12 +32,6 @@ const USUAL = USUAL_TYPES;
 const SITES: InsulinSite[] = [
   "Abdomen", "Left thigh", "Right thigh", "Left arm", "Right arm", "Buttock",
 ];
-
-function nowLocal() {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
-}
 
 function InsulinPage() {
   useLang();
@@ -48,7 +50,7 @@ function InsulinPage() {
     preType && !USUAL.includes(preType) && preUnits ? preUnits : ""
   );
   const [site,         setSite]         = useState<InsulinSite>("Abdomen");
-  const [time,         setTime]         = useState(nowLocal());
+  const [time,         setTime]         = useState(nowLocalInput());
   const [notes,        setNotes]        = useState("");
   const [mealCarbs,    setMealCarbs]    = useState<number | ("")>(preMealCarbs ?? "");
   const [glucose,      setGlucose]      = useState<number | ("")>("");
