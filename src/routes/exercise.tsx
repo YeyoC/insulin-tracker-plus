@@ -13,6 +13,7 @@ import {
 } from "@/lib/storage";
 import { activeWindows } from "@/lib/insulin";
 import { t, locale, useLang } from "@/lib/i18n";
+import { useProfile } from "@/hooks/useProfile";
 
 const TYPES: ExerciseType[] = [
   "Weightlifting",
@@ -39,6 +40,8 @@ function localDateTimeValue(d: Date) {
 function ExercisePage() {
   const lang = useLang();
   const navigate = useNavigate();
+  const { profile } = useProfile();
+  const basalType = profile?.basalInsulinType ?? "NPH";
   const [type, setType] = useState<ExerciseType>("Walking");
   const [duration, setDuration] = useState(30);
   const [intensity, setIntensity] = useState<ExerciseIntensity>("Moderate");
@@ -49,9 +52,9 @@ function ExercisePage() {
 
   const nphActive = useMemo(() => {
     return activeWindows(getInsulin(), new Date()).some(
-      (w) => w.entry.type === "NPH",
+      (w) => w.entry.type === basalType,
     );
-  }, [list]);
+  }, [list, basalType]);
 
   const intenseWithNph = intensity === "Intense" && nphActive;
 
