@@ -49,11 +49,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {t("err.failed")}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {t("err.failedDesc")}
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+       <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
               router.invalidate();
@@ -63,17 +59,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             {t("err.retry")}
           </button>
-          <a
+          
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             {t("err.goHome")}
           </a>
         </div>
-      </div>
-    </div>
-  );
-}
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
