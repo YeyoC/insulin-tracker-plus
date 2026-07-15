@@ -8,13 +8,13 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-
+ 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useAlertsEngine } from "../hooks/useAlertsEngine";
 import { t } from "../lib/i18n";
 import { getPin } from "../lib/storage";
-
+ 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -36,14 +36,14 @@ function NotFoundComponent() {
     </div>
   );
 }
-
+ 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
-
+ 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -74,7 +74,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     </div>
   );
 }
-
+ 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -101,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
+ 
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
@@ -115,7 +115,7 @@ function RootShell({ children }: { children: ReactNode }) {
     </html>
   );
 }
-
+ 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useAlertsEngine();
@@ -123,7 +123,7 @@ function RootComponent() {
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
-
+ 
   useEffect(() => {
     const onSaved = () => {
       setSavedToast(true);
@@ -132,7 +132,7 @@ function RootComponent() {
     window.addEventListener("insulina:saved", onSaved as EventListener);
     return () => window.removeEventListener("insulina:saved", onSaved as EventListener);
   }, []);
-
+ 
   const storedPin = getPin();
   if (storedPin && !unlocked) {
     return (
@@ -184,7 +184,7 @@ function RootComponent() {
       </div>
     );
   }
-
+ 
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
@@ -196,3 +196,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+ 
