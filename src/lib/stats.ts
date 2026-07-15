@@ -81,10 +81,12 @@ export function glucoseStats(
 export function avgDailyInsulin(
   entries: InsulinEntry[],
   period: Period,
+  basalType = "NPH",
+  rapidType = "Lispro",
 ): { nph: number; lispro: number } {
   const days = periodDays[period];
-  const nph = entries.filter((e) => e.type === "NPH").reduce((s, e) => s + e.units, 0);
-  const lispro = entries.filter((e) => e.type === "Lispro").reduce((s, e) => s + e.units, 0);
+  const nph = entries.filter((e) => e.type === basalType).reduce((s, e) => s + e.units, 0);
+  const lispro = entries.filter((e) => e.type === rapidType).reduce((s, e) => s + e.units, 0);
   return { nph: nph / days, lispro: lispro / days };
 }
 
