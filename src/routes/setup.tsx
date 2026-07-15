@@ -68,7 +68,7 @@ function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-5 py-10">
+    <div className="min-h-screen min-h-dvh bg-background px-5 py-10">
       <div className="mx-auto max-w-md">
         <div className="flex items-start justify-between gap-3">
           <div>
