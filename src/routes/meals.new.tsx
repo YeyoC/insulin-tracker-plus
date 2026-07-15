@@ -390,7 +390,7 @@ function NewMealPage() {
                           navigate({
                             to: "/insulin",
                             search: {
-                              type: "Lispro",
+                              type: profile?.rapidInsulinType ?? "Lispro",
                               units: bd.totalDose,
                               mealCarbs: Math.round(total),
                               fromMeal: true,
@@ -399,7 +399,7 @@ function NewMealPage() {
                         }
                         className="w-full rounded-xl bg-primary-foreground px-4 py-3 text-sm font-semibold text-primary"
                       >
-                        Registrar esta dosis Lispro
+                        Registrar esta dosis {profile?.rapidInsulinType ?? "Lispro"}
                       </button>
                       <button
                         type="button"
