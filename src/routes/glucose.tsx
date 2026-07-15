@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { addGlucose, type GlucoseEntry } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
+import { nowLocalInput } from "@/lib/utils";
 
 export const Route = createFileRoute("/glucose")({
   head: () => ({ meta: [{ title: "Log glucose — InsulinaApp" }] }),
@@ -16,12 +17,6 @@ const moments: GlucoseEntry["moment"][] = [
   "Bedtime",
   "Overnight",
 ];
-
-function nowLocalInput() {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
-}
 
 function GlucosePage() {
   useLang();
