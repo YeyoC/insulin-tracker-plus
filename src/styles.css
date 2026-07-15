@@ -3,6 +3,9 @@
 @import "tw-animate-css";
 
 /* iOS/Android optimizations */
+html, body {
+  overscroll-behavior-y: none; /* evita el rebote elástico que revela el fondo del navegador en iOS */
+}
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
