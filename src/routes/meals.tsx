@@ -62,10 +62,15 @@ function MealsPage() {
                     if (window.confirm("¿Eliminar este registro?")) deleteMeal(m.id);
                   }}
                 >
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setExpandedId((prev) => (prev === m.id ? null : m.id))}
-                    className="w-full text-left"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        setExpandedId((prev) => (prev === m.id ? null : m.id));
+                    }}
+                    className="w-full cursor-pointer text-left"
                   >
                     <div className="p-4">
                       <div className="flex items-baseline justify-between">
@@ -134,7 +139,7 @@ function MealsPage() {
                         </table>
                       </div>
                     )}
-                  </button>
+                  </div>
                 </SwipeRow>
               </li>
             );
