@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Download, AlertTriangle, Moon, ChevronDown } from "lucide-react";
+import { Download, AlertTriangle, Moon, ChevronDown, Pencil } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
   carbsFor,
@@ -226,13 +226,14 @@ function HistoryPage() {
                           mg/dL
                         </span>
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="flex items-center gap-2 text-xs text-muted-foreground">
                         {new Date(g.timestamp).toLocaleString(locale(lang), {
                           day: "numeric",
                           month: "short",
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
+                        <EditLink to="/glucose" id={g.id} />
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">{t(`moment.${g.moment}`)}</p>
@@ -256,13 +257,14 @@ function HistoryPage() {
                   <span className="text-lg font-semibold text-primary">
                     {i.type} · {i.units}U
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
                     {new Date(i.timestamp).toLocaleString(locale(lang), {
                       day: "numeric",
                       month: "short",
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
+                    <EditLink to="/insulin" id={i.id} />
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">{t(`site.${i.site}`)}</p>
@@ -311,6 +313,9 @@ function MealRow({ meal, lang }: { meal: MealEntry; lang: Lang }) {
 
   return (
     <li className="rounded-xl border border-border bg-card p-4">
+      <div className="mb-1 flex justify-end">
+        <EditLink to="/meals/new" id={meal.id} />
+      </div>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -362,6 +367,21 @@ function MealRow({ meal, lang }: { meal: MealEntry; lang: Lang }) {
         </div>
       )}
     </li>
+  );
+}
+
+function EditLink({ to, id }: { to: "/glucose" | "/insulin" | "/meals/new"; id: string }) {
+  return (
+    <Link
+      to={to}
+      search={{ edit: id }}
+      aria-label={t("common.edit")}
+      title={t("common.edit")}
+      onClick={(e) => e.stopPropagation()}
+      className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-primary"
+    >
+      <Pencil className="size-4" />
+    </Link>
   );
 }
 
