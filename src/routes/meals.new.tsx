@@ -23,9 +23,8 @@ import { calculateDose, getLisproRatio } from "@/lib/dose";
 import { nowLocalInput, toLocalInput } from "@/lib/utils";
 
 export const Route = createFileRoute("/meals/new")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    edit: (search.edit as string) || undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { edit?: string } =>
+    search.edit ? { edit: String(search.edit) } : {},
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
   component: NewMealPage,
 });

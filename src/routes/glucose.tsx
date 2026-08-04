@@ -6,9 +6,8 @@ import { t, useLang } from "@/lib/i18n";
 import { nowLocalInput, toLocalInput } from "@/lib/utils";
 
 export const Route = createFileRoute("/glucose")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    edit: (search.edit as string) || undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { edit?: string } =>
+    search.edit ? { edit: String(search.edit) } : {},
   head: () => ({ meta: [{ title: "Log glucose — InsulinaApp" }] }),
   component: GlucosePage,
 });
