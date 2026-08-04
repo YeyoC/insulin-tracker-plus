@@ -383,8 +383,18 @@ function InsulinPage() {
         </label>
 
         <button type="submit" className="btn-primary w-full">
-          Guardar insulina
+          {existing ? t("common.update") : "Guardar insulina"}
         </button>
+        {existing && (
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/history" })}
+            className="w-full rounded-xl border border-border bg-card py-3 text-sm font-medium"
+          >
+            {t("common.cancel")}
+          </button>
+        )}
+
       </form>
     </AppShell>
   );
