@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { addGlucose, type GlucoseEntry } from "@/lib/storage";
+import { addGlucose, getGlucose, updateGlucose, type GlucoseEntry } from "@/lib/storage";
 import { t, useLang } from "@/lib/i18n";
-import { nowLocalInput } from "@/lib/utils";
+import { nowLocalInput, toLocalInput } from "@/lib/utils";
 
 export const Route = createFileRoute("/glucose")({
+  validateSearch: (search: Record<string, unknown>): { edit?: string } =>
+    search.edit ? { edit: String(search.edit) } : {},
   head: () => ({ meta: [{ title: "Log glucose — InsulinaApp" }] }),
   component: GlucosePage,
 });
@@ -21,22 +23,38 @@ const moments: GlucoseEntry["moment"][] = [
 function GlucosePage() {
   useLang();
   const navigate = useNavigate();
-  const [value, setValue] = useState<number | "">("");
-  const [moment, setMoment] = useState<GlucoseEntry["moment"]>("Fasting");
-  const [time, setTime] = useState(nowLocalInput());
-  const [notes, setNotes] = useState("");
+  const { edit } = Route.useSearch();
+  const existing = useMemo(
+    () => (edit ? getGlucose().find((g) => g.id === edit) ?? null : null),
+    [edit],
+  );
+  const [value, setValue] = useState<number | "">(existing?.value ?? "");
+  const [moment, setMoment] = useState<GlucoseEntry["moment"]>(existing?.moment ?? "Fasting");
+  const [time, setTime] = useState(
+    existing ? toLocalInput(existing.timestamp) : nowLocalInput(),
+  );
+  const [notes, setNotes] = useState(existing?.notes ?? "");
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (typeof value !== "number" || value <= 0) return;
-    addGlucose({
+    const payload = {
       value,
       moment,
       notes: notes.trim() || undefined,
       timestamp: new Date(time).toISOString(),
-    });
-    window.dispatchEvent(new CustomEvent("insulina:saved", { detail: { type: "glucose" } }));
-    navigate({ to: "/" });
+    };
+    if (existing) updateGlucose(existing.id, payload);
+    else addGlucose(payload);
+    window.dispatchEvent(
+      new CustomEvent("insulina:saved", {
+        detail: {
+          type: "glucose",
+          message: existing ? t("common.updated") : "Guardado",
+        },
+      }),
+    );
+    navigate({ to: existing ? "/history" : "/" });
   };
 
   return (
@@ -100,8 +118,17 @@ function GlucosePage() {
         </label>
 
         <button type="submit" className="btn-primary w-full">
-          {t("common.save")}
+          {existing ? t("common.update") : t("common.save")}
         </button>
+        {existing && (
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/history" })}
+            className="w-full rounded-xl border border-border bg-card py-3 text-sm font-medium"
+          >
+            {t("common.cancel")}
+          </button>
+        )}
       </form>
     </AppShell>
   );

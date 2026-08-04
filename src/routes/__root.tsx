@@ -119,7 +119,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useAlertsEngine();
-  const [savedToast, setSavedToast] = useState(false);
+  const [savedToast, setSavedToast] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
@@ -127,9 +127,10 @@ function RootComponent() {
   const [storedPin, setStoredPin] = useState<string | null | false>(null);
 
   useEffect(() => {
-    const onSaved = () => {
-      setSavedToast(true);
-      window.setTimeout(() => setSavedToast(false), 2000);
+    const onSaved = (e: Event) => {
+      const detail = (e as CustomEvent<{ message?: string }>).detail;
+      setSavedToast(detail?.message || "Guardado");
+      window.setTimeout(() => setSavedToast(null), 2000);
     };
     window.addEventListener("insulina:saved", onSaved as EventListener);
     return () => window.removeEventListener("insulina:saved", onSaved as EventListener);
@@ -211,7 +212,7 @@ function RootComponent() {
       <Outlet />
       {savedToast && (
         <div className="fixed left-1/2 top-4 z-[10000] -translate-x-1/2 rounded-full bg-success px-4 py-2 text-sm font-medium text-success-foreground shadow-lg">
-          ✓ Guardado
+          ✓ {savedToast}
         </div>
       )}
     </QueryClientProvider>

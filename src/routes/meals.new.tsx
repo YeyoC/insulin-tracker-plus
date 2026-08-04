@@ -5,6 +5,8 @@ import { AppShell } from "@/components/AppShell";
 import { searchFoods, CATEGORIES, PRELOADED_FOODS, type FoodResult } from "@/lib/foods";
 import {
   addMeal,
+  getMeals,
+  updateMeal,
   carbsFor,
   getFrequentFoods,
   getSavedDishes,
@@ -18,9 +20,11 @@ import {
 import { t, useLang } from "@/lib/i18n";
 import { useProfile } from "@/hooks/useProfile";
 import { calculateDose, getLisproRatio } from "@/lib/dose";
-import { nowLocalInput } from "@/lib/utils";
+import { nowLocalInput, toLocalInput } from "@/lib/utils";
 
 export const Route = createFileRoute("/meals/new")({
+  validateSearch: (search: Record<string, unknown>): { edit?: string } =>
+    search.edit ? { edit: String(search.edit) } : {},
   head: () => ({ meta: [{ title: "New meal — InsulinaApp" }] }),
   component: NewMealPage,
 });
@@ -29,9 +33,16 @@ function NewMealPage() {
   useLang();
   const navigate = useNavigate();
   const { profile } = useProfile();
-  const [time, setTime] = useState(nowLocalInput());
-  const [notes, setNotes] = useState("");
-  const [foods, setFoods] = useState<MealFood[]>([]);
+  const { edit } = Route.useSearch();
+  const existing = useMemo(
+    () => (edit ? getMeals().find((m) => m.id === edit) ?? null : null),
+    [edit],
+  );
+  const [time, setTime] = useState(
+    existing ? toLocalInput(existing.timestamp) : nowLocalInput(),
+  );
+  const [notes, setNotes] = useState(existing?.notes ?? "");
+  const [foods, setFoods] = useState<MealFood[]>(existing?.foods ?? []);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetGlucose, setSheetGlucose] = useState<number | "">("");
@@ -53,18 +64,31 @@ function NewMealPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (foods.length === 0) return;
-    addMeal({
+    const payload = {
       foods,
       notes: notes.trim() || undefined,
       timestamp: new Date(time).toISOString(),
-    });
+    };
+    if (existing) {
+      updateMeal(existing.id, payload);
+      window.dispatchEvent(
+        new CustomEvent("insulina:saved", {
+          detail: { type: "meal", message: t("common.updated") },
+        }),
+      );
+      navigate({ to: "/meals" });
+      return;
+    }
+    addMeal(payload);
     trackFoodUsage(foods);
     setShowSheet(true);
   };
 
   return (
     <AppShell>
-      <h1 className="text-2xl font-bold text-primary">{t("newMeal.title")}</h1>
+      <h1 className="text-2xl font-bold text-primary">
+        {existing ? t("common.edit") : t("newMeal.title")}
+      </h1>
       <form onSubmit={submit} className="mt-6 space-y-5">
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium">{t("newMeal.mealTime")}</span>
@@ -219,8 +243,17 @@ function NewMealPage() {
           disabled={foods.length === 0}
           className="btn-primary w-full disabled:opacity-50"
         >
-          {t("newMeal.save")}
+          {existing ? t("common.update") : t("newMeal.save")}
         </button>
+        {existing && (
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/meals" })}
+            className="w-full rounded-xl border border-border bg-card py-3 text-sm font-medium"
+          >
+            {t("common.cancel")}
+          </button>
+        )}
       </form>
 
       {savedDishes.length > 0 && (

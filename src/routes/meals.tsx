@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Utensils, ChevronDown } from "lucide-react";
+import { Plus, Utensils, ChevronDown, Pencil } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { SwipeRow } from "@/components/SwipeRow";
 import {
@@ -62,10 +62,15 @@ function MealsPage() {
                     if (window.confirm("¿Eliminar este registro?")) deleteMeal(m.id);
                   }}
                 >
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setExpandedId((prev) => (prev === m.id ? null : m.id))}
-                    className="w-full text-left"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        setExpandedId((prev) => (prev === m.id ? null : m.id));
+                    }}
+                    className="w-full cursor-pointer text-left"
                   >
                     <div className="p-4">
                       <div className="flex items-baseline justify-between">
@@ -81,6 +86,16 @@ function MealsPage() {
                               minute: "2-digit",
                             })}
                           </span>
+                          <Link
+                            to="/meals/new"
+                            search={{ edit: m.id }}
+                            aria-label={t("common.edit")}
+                            title={t("common.edit")}
+                            onClick={(e) => e.stopPropagation()}
+                            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-primary"
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
                           <ChevronDown
                             className={`size-4 text-muted-foreground transition-transform ${
                               isOpen ? "rotate-180" : ""
@@ -124,7 +139,7 @@ function MealsPage() {
                         </table>
                       </div>
                     )}
-                  </button>
+                  </div>
                 </SwipeRow>
               </li>
             );

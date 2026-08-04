@@ -2,18 +2,19 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { addInsulin, getMeals, totalCarbs, type InsulinSite } from "@/lib/storage";
+import { addInsulin, getInsulin, updateInsulin, getMeals, totalCarbs, type InsulinSite } from "@/lib/storage";
 import { useProfile } from "@/hooks/useProfile";
 import { calculateDose, getLisproRatio, DIFF_REASONS } from "@/lib/dose";
 import { t, useLang } from "@/lib/i18n";
 import { INSULIN_CATALOG, PROFILES, USUAL_TYPES } from "@/lib/insulin";
-import { nowLocalInput } from "@/lib/utils";
+import { nowLocalInput, toLocalInput } from "@/lib/utils";
 
 type InsulinSearch = {
   type?: string;
   units?: number;
   mealCarbs?: number;
   fromMeal?: boolean;
+  edit?: string;
 };
 
 export const Route = createFileRoute("/insulin")({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/insulin")({
     units: search.units ? Number(search.units) : undefined,
     mealCarbs: search.mealCarbs ? Number(search.mealCarbs) : undefined,
     fromMeal: search.fromMeal ? true : undefined,
+    edit: (search.edit as string) || undefined,
   }),
   head: () => ({ meta: [{ title: "Insulina — InsulinaApp" }] }),
   component: InsulinPage,
@@ -38,20 +40,42 @@ function InsulinPage() {
   const navigate  = useNavigate();
   const router    = useRouter();
   const { profile } = useProfile();
-  const { type: preType, units: preUnits, mealCarbs: preMealCarbs, fromMeal } =
+  const { type: preType, units: preUnits, mealCarbs: preMealCarbs, fromMeal, edit } =
     Route.useSearch();
 
-  const [selectedType, setSelectedType] = useState<string>(preType ?? "Lispro");
-  const [nphUnits,     setNphUnits]     = useState<number | ("")>("");
+  const existing = useMemo(
+    () => (edit ? getInsulin().find((i) => i.id === edit) ?? null : null),
+    [edit],
+  );
+  const basalType = profile?.basalInsulinType || "NPH";
+  const rapidType = profile?.rapidInsulinType || "Lispro";
+  const editSlot: "basal" | "rapid" | "other" | null = existing
+    ? existing.type === basalType
+      ? "basal"
+      : existing.type === rapidType
+        ? "rapid"
+        : "other"
+    : null;
+
+  const [selectedType, setSelectedType] = useState<string>(
+    existing?.type ?? preType ?? "Lispro"
+  );
+  const [nphUnits,     setNphUnits]     = useState<number | ("")>(
+    editSlot === "basal" ? existing!.units : ""
+  );
   const [lisproUnits,  setLisproUnits]  = useState<number | ("")>(
-    preType === "Lispro" && preUnits ? preUnits : ""
+    editSlot === "rapid" ? existing!.units
+      : preType === "Lispro" && preUnits ? preUnits : ""
   );
   const [otherUnits,   setOtherUnits]   = useState<number | ("")>(
-    preType && !USUAL.includes(preType) && preUnits ? preUnits : ""
+    editSlot === "other" ? existing!.units
+      : preType && !USUAL.includes(preType) && preUnits ? preUnits : ""
   );
-  const [site,         setSite]         = useState<InsulinSite>("Abdomen");
-  const [time,         setTime]         = useState(nowLocalInput());
-  const [notes,        setNotes]        = useState("");
+  const [site,         setSite]         = useState<InsulinSite>(existing?.site ?? "Abdomen");
+  const [time,         setTime]         = useState(
+    existing ? toLocalInput(existing.timestamp) : nowLocalInput()
+  );
+  const [notes,        setNotes]        = useState(existing?.notes ?? "");
   const [mealCarbs,    setMealCarbs]    = useState<number | ("")>(preMealCarbs ?? "");
   const [glucose,      setGlucose]      = useState<number | ("")>("");
   const [mealNote,     setMealNote]     = useState<string | null>(null);
@@ -59,7 +83,7 @@ function InsulinPage() {
   const [reasonOther,  setReasonOther]  = useState("");
 
   useEffect(() => {
-    if (preMealCarbs) return;
+    if (preMealCarbs || existing) return;
     const last = getMeals()[0];
     if (!last) return;
     const ageMin = (Date.now() - new Date(last.timestamp).getTime()) / 60000;
@@ -85,7 +109,7 @@ function InsulinPage() {
   const actual      = typeof lisproUnits === "number" ? lisproUnits : null;
   const differs     = recommended !== undefined && actual !== null
     && Math.abs(actual - recommended) >= 0.5;
-  const showOther   = selectedType && !USUAL.includes(selectedType);
+  const showOther   = (selectedType && !USUAL.includes(selectedType)) || editSlot === "other";
 
   const currentRatio = profile ? getLisproRatio(profile, new Date(time)) : null;
   const timeSlot = new Date(time).getHours() < 12 ? "mañana"
@@ -98,6 +122,28 @@ function InsulinPage() {
       ? (reasonOther.trim() || "Other")
       : (reason || undefined);
     const ts = new Date(time).toISOString();
+
+    if (existing) {
+      const units =
+        editSlot === "basal" ? nphUnits : editSlot === "rapid" ? lisproUnits : otherUnits;
+      if (typeof units !== "number" || units <= 0) return;
+      updateInsulin(existing.id, {
+        type: editSlot === "basal" ? basalType : editSlot === "rapid" ? rapidType : selectedType,
+        units,
+        site,
+        notes: notes.trim() || undefined,
+        timestamp: ts,
+        recommended: editSlot === "rapid" ? recommended ?? existing.recommended : existing.recommended,
+        diffReason: editSlot === "rapid" && differs ? finalReason : existing.diffReason,
+      });
+      window.dispatchEvent(
+        new CustomEvent("insulina:saved", {
+          detail: { type: "insulin", message: t("common.updated") },
+        }),
+      );
+      navigate({ to: "/history" });
+      return;
+    }
 
     if (typeof nphUnits === "number" && nphUnits > 0)
       addInsulin({ type: profile?.basalInsulinType || "NPH", units: nphUnits, site,
@@ -125,7 +171,9 @@ function InsulinPage() {
         <ChevronLeft className="size-4" /> Atrás
       </button>
 
-      <h1 className="text-2xl font-bold text-primary">Registrar insulina</h1>
+      <h1 className="text-2xl font-bold text-primary">
+        {existing ? "Editar insulina" : "Registrar insulina"}
+      </h1>
 
       {fromMeal && (
         <div className="mt-3 rounded-lg bg-accent p-3 text-sm text-accent-foreground">
@@ -335,8 +383,18 @@ function InsulinPage() {
         </label>
 
         <button type="submit" className="btn-primary w-full">
-          Guardar insulina
+          {existing ? t("common.update") : "Guardar insulina"}
         </button>
+        {existing && (
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/history" })}
+            className="w-full rounded-xl border border-border bg-card py-3 text-sm font-medium"
+          >
+            {t("common.cancel")}
+          </button>
+        )}
+
       </form>
     </AppShell>
   );
