@@ -38,6 +38,9 @@ type Dict = Record<string, string>;
 const ES: Dict = {
   // common
   "common.save": "Guardar",
+  "common.edit": "Editar",
+  "common.update": "Actualizar cambios",
+  "common.updated": "Registro actualizado",
   "common.cancel": "Cancelar",
   "common.delete": "Eliminar",
   "common.back": "Atrás",
@@ -301,6 +304,9 @@ const ES: Dict = {
 
 const EN: Dict = {
   "common.save": "Save",
+  "common.edit": "Edit",
+  "common.update": "Update record",
+  "common.updated": "Record updated",
   "common.cancel": "Cancel",
   "common.delete": "Delete",
   "common.back": "Back",

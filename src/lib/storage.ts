@@ -128,6 +128,11 @@ export const addGlucose = (e: Omit<GlucoseEntry, "id">) => {
   list.unshift({ ...e, id: crypto.randomUUID() });
   write(KEYS.glucose, list);
 };
+export const updateGlucose = (id: string, patch: Omit<GlucoseEntry, "id">) =>
+  write(
+    KEYS.glucose,
+    getGlucose().map((g) => (g.id === id ? { ...patch, id } : g)),
+  );
 export const deleteGlucose = (id: string) =>
   write(KEYS.glucose, getGlucose().filter((g) => g.id !== id));
 
@@ -137,6 +142,11 @@ export const addInsulin = (e: Omit<InsulinEntry, "id">) => {
   list.unshift({ ...e, id: crypto.randomUUID() });
   write(KEYS.insulin, list);
 };
+export const updateInsulin = (id: string, patch: Omit<InsulinEntry, "id">) =>
+  write(
+    KEYS.insulin,
+    getInsulin().map((i) => (i.id === id ? { ...patch, id } : i)),
+  );
 export const deleteInsulin = (id: string) =>
   write(KEYS.insulin, getInsulin().filter((i) => i.id !== id));
 
@@ -146,6 +156,11 @@ export const addMeal = (e: Omit<MealEntry, "id">) => {
   list.unshift({ ...e, id: crypto.randomUUID() });
   write(KEYS.meals, list);
 };
+export const updateMeal = (id: string, patch: Omit<MealEntry, "id">) =>
+  write(
+    KEYS.meals,
+    getMeals().map((m) => (m.id === id ? { ...patch, id } : m)),
+  );
 export const deleteMeal = (id: string) =>
   write(KEYS.meals, getMeals().filter((m) => m.id !== id));
 
