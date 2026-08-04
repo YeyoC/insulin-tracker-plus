@@ -11,3 +11,10 @@ export function nowLocalInput() {
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().slice(0, 16);
 }
+
+/** Convert an ISO timestamp to a `datetime-local` input value (local time). */
+export function toLocalInput(iso: string) {
+  const d = new Date(iso);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
