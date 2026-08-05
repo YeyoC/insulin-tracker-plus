@@ -38,7 +38,7 @@ export function ActiveInsulinBar() {
         return (
           <div key={w.entry.id} className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-baseline justify-between">
-              <span className="font-semibold" style={{ color: w.profile.color }}>
+              <span className="font-semibold text-primary">
                 {w.profile.label} · {w.entry.units}U
               </span>
               <span className="text-xs text-muted-foreground">
@@ -52,7 +52,7 @@ export function ActiveInsulinBar() {
             <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full transition-all"
-                style={{ width: `${pct}%`, backgroundColor: w.profile.color }}
+                style={{ width: `${pct}%`, backgroundColor: "var(--chart-line)" }}
               />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{t("active.activePct", { n: pct })}</p>

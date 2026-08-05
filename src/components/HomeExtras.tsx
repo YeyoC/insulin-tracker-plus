@@ -90,7 +90,7 @@ export function HomeExtras() {
       )}
 
       {special.active && (
-        <div className="rounded-xl border-l-4 border-l-amber-500 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rounded-xl border-l-4 border-l-warning bg-warning/10 p-3 text-sm text-foreground">
           <p className="font-semibold">{t("extras.specialOn", { type: special.type ? ` · ${t(`special.${special.type}`)}` : "" })}</p>
           <p>{t("extras.specialDesc")}</p>
         </div>
@@ -150,7 +150,7 @@ export function HomeExtras() {
               className="peer sr-only"
             />
             <span className="h-6 w-11 rounded-full bg-muted peer-checked:bg-secondary transition-colors" />
-            <span className="absolute left-1 top-1 size-4 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
+            <span className="absolute left-1 top-1 size-4 rounded-full bg-card-foreground transition-transform peer-checked:translate-x-5" />
           </label>
         </div>
 

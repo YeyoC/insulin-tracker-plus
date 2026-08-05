@@ -43,7 +43,7 @@ export function CriticalGlucoseOverlay() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-red-700 px-6 text-center text-white">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-danger px-6 text-center text-danger-foreground">
       <div>
         <p className="text-sm uppercase tracking-widest opacity-80">{t("critical.label")}</p>
         <h1 className="mt-2 text-4xl font-bold">{t("critical.title")}</h1>
@@ -53,7 +53,7 @@ export function CriticalGlucoseOverlay() {
             <p className="text-2xl font-mono">{contact.phone}</p>
             <a
               href={`tel:${contact.phone}`}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-lg font-bold text-red-700"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-danger-foreground px-6 py-3 text-lg font-bold text-danger"
             >
               <Phone className="size-5" /> {t("critical.callBtn")}
             </a>
