@@ -13,7 +13,11 @@ import type { GlucoseEntry } from "@/lib/storage";
 import { t, locale, useLang } from "@/lib/i18n";
 
 const colorFor = (moment: GlucoseEntry["moment"]) =>
-  moment === "Fasting" ? "#1A6B9A" : moment === "Post-meal" ? "#E89B3C" : "#8A8A8A";
+  moment === "Fasting"
+    ? "var(--chart-fasting)"
+    : moment === "Post-meal"
+      ? "var(--chart-post-meal)"
+      : "var(--chart-other)";
 
 export function GlucoseTrendChart({
   entries,
@@ -50,31 +54,36 @@ export function GlucoseTrendChart({
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: -16 }}>
-            <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
+            <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" />
             <XAxis
               dataKey="t"
               type="number"
               domain={["dataMin", "dataMax"]}
               tickFormatter={fmtDate}
               tick={{ fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="var(--chart-axis)"
             />
             <YAxis
               domain={[40, "dataMax + 20"]}
               tick={{ fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground))"
+              stroke="var(--chart-axis)"
             />
             <Tooltip
               labelFormatter={(tt) => new Date(Number(tt)).toLocaleString(locale(lang))}
               formatter={(v: number, _n, p) => [`${v} mg/dL`, t(`moment.${p.payload.moment}`)]}
-              contentStyle={{ fontSize: 12 }}
+              contentStyle={{
+                fontSize: 12,
+                background: "var(--popover)",
+                color: "var(--popover-foreground)",
+                borderColor: "var(--border)",
+              }}
             />
-            <ReferenceLine y={rangeMin} stroke="#2BAE66" strokeDasharray="4 4" />
-            <ReferenceLine y={rangeMax} stroke="#2BAE66" strokeDasharray="4 4" />
+            <ReferenceLine y={rangeMin} stroke="var(--chart-range)" strokeDasharray="4 4" />
+            <ReferenceLine y={rangeMax} stroke="var(--chart-range)" strokeDasharray="4 4" />
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#1A3A5C"
+              stroke="var(--chart-line)"
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}
@@ -84,10 +93,10 @@ export function GlucoseTrendChart({
         </ResponsiveContainer>
       </div>
       <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <LegendDot color="#1A6B9A" label={t("history.legend.fasting")} />
-        <LegendDot color="#E89B3C" label={t("history.legend.postMeal")} />
-        <LegendDot color="#8A8A8A" label={t("history.legend.other")} />
-        <LegendDot color="#2BAE66" label={t("history.legend.range", { min: rangeMin, max: rangeMax })} dashed />
+        <LegendDot color="var(--chart-fasting)" label={t("history.legend.fasting")} />
+        <LegendDot color="var(--chart-post-meal)" label={t("history.legend.postMeal")} />
+        <LegendDot color="var(--chart-other)" label={t("history.legend.other")} />
+        <LegendDot color="var(--chart-range)" label={t("history.legend.range", { min: rangeMin, max: rangeMax })} dashed />
       </div>
     </div>
   );

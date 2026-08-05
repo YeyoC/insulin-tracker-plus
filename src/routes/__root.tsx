@@ -104,8 +104,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var k='insulina:theme',s=localStorage.getItem(k),d=s==='dark'||(!s&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})()`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
@@ -146,30 +151,24 @@ function RootComponent() {
   // y los datos sensibles nunca llegan al DOM antes de verificar el PIN.
   if (storedPin === null) {
     return (
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "#f5f8ff",
-        }}
-      />
+      <div className="fixed inset-0 bg-background" />
     );
   }
 
   if (storedPin && !unlocked) {
     return (
-      <div style={{
-        position: "fixed", inset: 0, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", gap: "1.25rem",
-        backgroundColor: "#f5f8ff", padding: "2rem",
-        paddingTop: "env(safe-area-inset-top, 2rem)",
-        paddingBottom: "env(safe-area-inset-bottom, 2rem)",
-      }}>
-        <p style={{ fontSize: "3rem" }}>💉</p>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#1A3A5C", textAlign: "center" }}>
+      <div
+        className="fixed inset-0 flex flex-col items-center justify-center gap-5 bg-background p-8 text-foreground"
+        style={{
+          paddingTop: "env(safe-area-inset-top, 2rem)",
+          paddingBottom: "env(safe-area-inset-bottom, 2rem)",
+        }}
+      >
+        <p className="text-5xl">💉</p>
+        <h1 className="text-center text-2xl font-bold text-primary">
           InsulinaApp
         </h1>
-        <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center" }}>
+        <p className="text-center text-sm text-muted-foreground">
           Ingresa tu PIN para continuar
         </p>
         <input
@@ -190,16 +189,14 @@ function RootComponent() {
               }
             }
           }}
-          style={{
-            width: "8rem", textAlign: "center", fontSize: "1.5rem",
-            letterSpacing: "0.5rem", padding: "0.75rem", minHeight: "44px",
-            border: pinError ? "2px solid #ef4444" : "2px solid #1A6B9A",
-            borderRadius: "0.75rem", outline: "none", backgroundColor: "#ffffff",
-          }}
+          className={`w-32 rounded-xl border-2 bg-card p-3 text-center text-2xl text-foreground outline-hidden focus:ring-3 focus:ring-ring/30 ${
+            pinError ? "border-danger" : "border-secondary"
+          }`}
+          style={{ letterSpacing: "0.5rem" }}
           placeholder="••••"
         />
         {pinError && (
-          <p style={{ color: "#ef4444", fontSize: "0.75rem" }}>
+          <p className="text-xs text-danger">
             PIN incorrecto. Intenta de nuevo.
           </p>
         )}
