@@ -15,10 +15,10 @@ export const Route = createFileRoute("/alerts")({
 });
 
 const LEVEL_STYLES: Record<AlertRecord["level"], string> = {
-  red: "border-l-4 border-l-red-600 bg-red-50",
-  orange: "border-l-4 border-l-orange-500 bg-orange-50",
-  yellow: "border-l-4 border-l-yellow-500 bg-yellow-50",
-  blue: "border-l-4 border-l-sky-600 bg-sky-50",
+  red: "border-l-4 border-l-danger bg-danger/10",
+  orange: "border-l-4 border-l-warning bg-warning/10",
+  yellow: "border-l-4 border-l-warning bg-warning/10",
+  blue: "border-l-4 border-l-secondary bg-secondary/10",
 };
 
 function AlertsPage() {

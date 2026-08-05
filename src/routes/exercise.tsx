@@ -115,7 +115,7 @@ function ExercisePage() {
         </Field>
 
         {intenseWithNph && (
-          <div className="rounded-xl border-l-4 border-l-red-600 bg-red-50 p-3 text-sm text-red-900">
+          <div className="rounded-xl border-l-4 border-l-danger bg-danger/10 p-3 text-sm text-foreground">
             {t("exercise.warn")}
           </div>
         )}

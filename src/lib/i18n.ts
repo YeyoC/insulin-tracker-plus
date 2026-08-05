@@ -55,6 +55,11 @@ const ES: Dict = {
   "common.language": "Idioma",
   "common.spanish": "Español",
   "common.english": "Inglés",
+  "theme.label": "Apariencia",
+  "theme.light": "Claro",
+  "theme.dark": "Oscuro",
+  "theme.useLight": "Usar modo claro",
+  "theme.useDark": "Usar modo oscuro",
 
   // nav
   "nav.home": "Inicio",
@@ -321,6 +326,11 @@ const EN: Dict = {
   "common.language": "Language",
   "common.spanish": "Spanish",
   "common.english": "English",
+  "theme.label": "Appearance",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "theme.useLight": "Use light mode",
+  "theme.useDark": "Use dark mode",
 
   "nav.home": "Home",
   "nav.insulin": "Insulin",

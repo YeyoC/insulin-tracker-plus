@@ -94,6 +94,54 @@ button {
   --border: oklch(0.9 0.01 240);
   --input: oklch(0.9 0.01 240);
   --ring: var(--brand-mid);
+
+  --chart-grid: oklch(0.88 0.01 240);
+  --chart-axis: oklch(0.46 0.02 245);
+  --chart-line: var(--brand-dark);
+  --chart-fasting: var(--brand-mid);
+  --chart-post-meal: oklch(0.69 0.15 72);
+  --chart-other: oklch(0.55 0 0);
+  --chart-range: oklch(0.64 0.17 145);
+  --overlay: oklch(0.08 0.02 245 / 0.68);
+}
+
+.dark {
+  --brand-dark: oklch(0.74 0.12 235);
+  --brand-mid: oklch(0.7 0.13 230);
+
+  --background: oklch(0.16 0.018 245);
+  --foreground: oklch(0.94 0.01 240);
+  --card: oklch(0.21 0.022 245);
+  --card-foreground: oklch(0.94 0.01 240);
+  --popover: oklch(0.21 0.022 245);
+  --popover-foreground: oklch(0.94 0.01 240);
+  --primary: var(--brand-dark);
+  --primary-foreground: oklch(0.16 0.018 245);
+  --secondary: var(--brand-mid);
+  --secondary-foreground: oklch(0.14 0.018 245);
+  --muted: oklch(0.27 0.018 245);
+  --muted-foreground: oklch(0.72 0.018 240);
+  --accent: oklch(0.29 0.045 235);
+  --accent-foreground: oklch(0.93 0.02 235);
+  --destructive: oklch(0.7 0.19 25);
+  --destructive-foreground: oklch(0.15 0.02 25);
+  --success: oklch(0.74 0.16 145);
+  --success-foreground: oklch(0.15 0.03 145);
+  --warning: oklch(0.82 0.15 85);
+  --warning-foreground: oklch(0.19 0.03 85);
+  --danger: oklch(0.72 0.19 25);
+  --danger-foreground: oklch(0.15 0.03 25);
+  --border: oklch(0.34 0.018 245);
+  --input: oklch(0.38 0.02 245);
+  --ring: var(--brand-mid);
+
+  --chart-grid: oklch(0.34 0.018 245);
+  --chart-axis: oklch(0.72 0.018 240);
+  --chart-line: oklch(0.78 0.12 235);
+  --chart-fasting: oklch(0.75 0.13 230);
+  --chart-post-meal: oklch(0.8 0.14 72);
+  --chart-other: oklch(0.72 0 0);
+  --chart-range: oklch(0.75 0.16 145);
 }
 
 @layer base {
@@ -104,6 +152,7 @@ button {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 

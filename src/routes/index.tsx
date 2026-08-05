@@ -7,6 +7,7 @@ import { ActiveInsulinBar } from "@/components/ActiveInsulinBar";
 import { HomeExtras } from "@/components/HomeExtras";
 import { CriticalGlucoseOverlay } from "@/components/CriticalGlucoseOverlay";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 import { t, locale, useLang } from "@/lib/i18n";
@@ -86,6 +87,7 @@ function Home() {
         <div className="mt-1 flex items-baseline justify-between gap-3">
           <h1 className="text-3xl font-bold text-primary">{t("home.greeting", { name: profile.name })}</h1>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <LanguageToggle />
             <Link to="/settings" className="text-sm font-medium text-secondary hover:underline">
               {t("common.settings")}
@@ -190,7 +192,7 @@ function Home() {
         <div className={`mt-4 rounded-xl border p-4 space-y-2 ${
           nphSuggestion.direction === "increase"
             ? "border-warning/40 bg-warning/10"
-            : "border-blue-200 bg-blue-50"
+            : "border-secondary/40 bg-accent"
         }`}>
           <div className="flex items-start gap-2">
             <span className="shrink-0 text-lg">
@@ -216,7 +218,7 @@ function Home() {
               )}
             </div>
           </div>
-          <div className="rounded-lg border border-border bg-white/60 p-2 text-xs text-muted-foreground">
+          <div className="rounded-lg border border-border bg-card/60 p-2 text-xs text-muted-foreground">
             ⚕️ Solo es una sugerencia. Consulta siempre a tu endocrinólogo antes de cambiar tu dosis.
           </div>
         </div>

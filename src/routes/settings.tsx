@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/lib/theme";
 import {
   averageDailyLispro,
   clearPin,
@@ -35,6 +37,7 @@ function daysBetween(a: Date, b: Date) {
 
 function SettingsPage() {
   useLang();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [p, setP] = useState<Profile | null>(null);
   const [savedDishes, setSavedDishes] = useState<SavedDish[]>([]);
@@ -90,9 +93,18 @@ function SettingsPage() {
     <AppShell>
       <div className="flex items-start justify-between gap-3">
         <h1 className="text-2xl font-bold text-primary">{t("settings.title")}</h1>
-        <div className="flex flex-col items-end gap-1">
-          <span className="text-xs text-muted-foreground">{t("common.language")}</span>
-          <LanguageToggle />
+        <div className="flex items-end gap-3">
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-xs text-muted-foreground">{t("theme.label")}</span>
+            <ThemeToggle />
+            <span className="text-xs text-muted-foreground">
+              {t(theme === "dark" ? "theme.dark" : "theme.light")}
+            </span>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-xs text-muted-foreground">{t("common.language")}</span>
+            <LanguageToggle />
+          </div>
         </div>
       </div>
       <form onSubmit={submit} className="mt-6 space-y-5">
