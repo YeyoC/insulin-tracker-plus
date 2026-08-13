@@ -11,7 +11,7 @@ import {
   SITES,
 } from "./stats";
 
-export function exportReport({
+export function buildReport({
   profile,
   period,
   glucose,
@@ -21,7 +21,7 @@ export function exportReport({
   period: Period;
   glucose: GlucoseEntry[];
   insulin: InsulinEntry[];
-}) {
+}): { blob: Blob; filename: string } {
   const doc = new jsPDF();
   const now = new Date();
   const start = periodStart(period, now);
