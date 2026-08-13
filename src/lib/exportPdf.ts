@@ -108,5 +108,23 @@ export function buildReport({
   });
 
   const filename = `InsulinaApp_Report_${now.toISOString().slice(0, 10)}.pdf`;
-  doc.save(filename);
+  return { blob: doc.output("blob"), filename };
+}
+
+export function exportReport(args: {
+  profile: Profile | null;
+  period: Period;
+  glucose: GlucoseEntry[];
+  insulin: InsulinEntry[];
+}) {
+  const { blob, filename } = buildReport(args);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  return { blob, filename };
 }
