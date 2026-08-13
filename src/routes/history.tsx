@@ -182,20 +182,28 @@ function HistoryPage() {
             <InjectionSiteMap usage={usage} mostUsed={topSite} />
           </section>
 
-          <button
-            onClick={() =>
-              exportReport({
-                profile,
-                period,
-                glucose: periodGlucose,
-                insulin: periodInsulin,
-              })
-            }
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow"
-          >
-            <Download className="size-4" />
-            {t("history.exportPdf")}
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() =>
+                exportReport({
+                  profile,
+                  period,
+                  glucose: periodGlucose,
+                  insulin: periodInsulin,
+                })
+              }
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow"
+            >
+              <Download className="size-4" />
+              {t("history.exportPdf")}
+            </button>
+            <ShareReportButton
+              profile={profile}
+              period={period}
+              glucose={periodGlucose}
+              insulin={periodInsulin}
+            />
+          </div>
         </div>
       )}
 
