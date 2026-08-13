@@ -27,6 +27,7 @@ import {
 import { GlucoseTrendChart } from "@/components/GlucoseTrendChart";
 import { InjectionSiteMap } from "@/components/InjectionSiteMap";
 import { exportReport } from "@/lib/exportPdf";
+import { ShareReportButton } from "@/components/ShareReportButton";
 import { t, locale, useLang, type Lang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/history")({
