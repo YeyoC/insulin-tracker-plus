@@ -25,6 +25,8 @@ export type Profile = {
   prescribedBasalMorning?: number; // units NPH/basal in the morning
   prescribedBasalNight?: number;   // units NPH/basal at night
   prescribedBasalDaily?: number;   // units for once-daily basal
+  basalMorningTime?: string;       // usual morning basal time "HH:MM" (default "08:00")
+  basalNightTime?: string;         // usual night basal time "HH:MM" (default "21:00")
   rapidInsulinType?: string; // e.g. "Lispro", "Aspart", "Glulisina", "Regular"
   lisproRatioMorning?: number;   // g CHO per 1U rapid insulin (until 12pm)
   lisproRatioAfternoon?: number; // g CHO per 1U rapid insulin (12pm-6pm)
