@@ -76,7 +76,19 @@ function SetupPage() {
       lisproRatioMorning: ratioMorning !== "" ? Number(ratioMorning) : undefined,
       lisproRatioAfternoon: ratioAfternoon !== "" ? Number(ratioAfternoon) : undefined,
       lisproRatioNight: ratioNight !== "" ? Number(ratioNight) : undefined,
+      emergencyContact:
+        !skipContact && (contactName.trim() || contactPhone.trim())
+          ? { name: contactName.trim(), phone: contactPhone.trim() }
+          : undefined,
+      inventory:
+        !skipInventory && invUnits !== ""
+          ? {
+              units: Number(invUnits),
+              ...(invOpenedDate ? { openedDate: invOpenedDate } : {}),
+            }
+          : undefined,
     });
+
     navigate({ to: "/" });
   };
 
