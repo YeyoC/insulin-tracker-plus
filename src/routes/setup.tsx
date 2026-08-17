@@ -33,7 +33,16 @@ function SetupPage() {
   const [ratioAfternoon, setRatioAfternoon] = useState<number | "">("");
   const [ratioNight, setRatioNight] = useState<number | "">("");
 
+  // Emergency contact + initial inventory (optional steps)
+  const [skipContact, setSkipContact] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [skipInventory, setSkipInventory] = useState(false);
+  const [invUnits, setInvUnits] = useState<number | "">("");
+  const [invOpenedDate, setInvOpenedDate] = useState("");
+
   const isOnceDailyBasal = ["Glargina", "Detemir", "Degludec"].includes(basalType);
+
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
