@@ -148,6 +148,7 @@ function SetupPage() {
               {basalType !== "Ninguna" && (
                 <div className="grid grid-cols-2 gap-3">
                   {isOnceDailyBasal ? (
+                    <>
                     <label className="col-span-2 block">
                       <span className="mb-1.5 block text-xs font-medium">Dosis diaria (U)</span>
                       <input type="number" inputMode="decimal" step={0.5} min={0} className="input"
@@ -159,6 +160,7 @@ function SetupPage() {
                       <input type="time" className="input" value={basalMorningTime}
                         onChange={(e) => setBasalMorningTime(e.target.value)} />
                     </label>
+                    </>
                   ) : (
                     <>
                       <label className="block">
