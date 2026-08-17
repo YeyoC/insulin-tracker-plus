@@ -26,6 +26,8 @@ function SetupPage() {
   const [basalMorning, setBasalMorning] = useState<number | "">("");
   const [basalNight, setBasalNight] = useState<number | "">("");
   const [basalDaily, setBasalDaily] = useState<number | "">("");
+  const [basalMorningTime, setBasalMorningTime] = useState("08:00");
+  const [basalNightTime, setBasalNightTime] = useState("21:00");
   const [rapidType, setRapidType] = useState("Lispro");
   const [ratioMorning, setRatioMorning] = useState<number | "">("");
   const [ratioAfternoon, setRatioAfternoon] = useState<number | "">("");
@@ -59,6 +61,8 @@ function SetupPage() {
       prescribedBasalMorning: !isOnceDailyBasal && basalMorning !== "" ? Number(basalMorning) : undefined,
       prescribedBasalNight: !isOnceDailyBasal && basalNight !== "" ? Number(basalNight) : undefined,
       prescribedBasalDaily: isOnceDailyBasal && basalDaily !== "" ? Number(basalDaily) : undefined,
+      basalMorningTime: basalType !== "Ninguna" ? basalMorningTime : undefined,
+      basalNightTime: basalType !== "Ninguna" && !isOnceDailyBasal ? basalNightTime : undefined,
       rapidInsulinType: rapidType,
       lisproRatioMorning: ratioMorning !== "" ? Number(ratioMorning) : undefined,
       lisproRatioAfternoon: ratioAfternoon !== "" ? Number(ratioAfternoon) : undefined,
@@ -150,6 +154,11 @@ function SetupPage() {
                         placeholder="ej. 20" value={basalDaily}
                         onChange={(e) => setBasalDaily(e.target.value === "" ? "" : Number(e.target.value))} />
                     </label>
+                    <label className="col-span-2 block">
+                      <span className="mb-1.5 block text-xs font-medium">Hora habitual</span>
+                      <input type="time" className="input" value={basalMorningTime}
+                        onChange={(e) => setBasalMorningTime(e.target.value)} />
+                    </label>
                   ) : (
                     <>
                       <label className="block">
@@ -163,6 +172,16 @@ function SetupPage() {
                         <input type="number" inputMode="decimal" step={0.5} min={0} className="input"
                           placeholder="ej. 20" value={basalNight}
                           onChange={(e) => setBasalNight(e.target.value === "" ? "" : Number(e.target.value))} />
+                      </label>
+                      <label className="block">
+                        <span className="mb-1.5 block text-xs font-medium">Hora habitual mañana</span>
+                        <input type="time" className="input" value={basalMorningTime}
+                          onChange={(e) => setBasalMorningTime(e.target.value)} />
+                      </label>
+                      <label className="block">
+                        <span className="mb-1.5 block text-xs font-medium">Hora habitual noche</span>
+                        <input type="time" className="input" value={basalNightTime}
+                          onChange={(e) => setBasalNightTime(e.target.value)} />
                       </label>
                     </>
                   )}

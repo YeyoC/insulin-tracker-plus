@@ -372,17 +372,27 @@ function PrescriptionSection({
 
       {basalType !== "Ninguna" && (
         isOnceDaily ? (
-          <Field label="Dosis diaria (U)">
-            <input
-              type="number"
-              min={0}
-              value={profile.prescribedBasalDaily ?? ""}
-              onChange={(e) =>
-                update("prescribedBasalDaily", e.target.value === "" ? undefined : Number(e.target.value))
-              }
-              className="input"
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Dosis diaria (U)">
+              <input
+                type="number"
+                min={0}
+                value={profile.prescribedBasalDaily ?? ""}
+                onChange={(e) =>
+                  update("prescribedBasalDaily", e.target.value === "" ? undefined : Number(e.target.value))
+                }
+                className="input"
+              />
+            </Field>
+            <Field label="Hora habitual">
+              <input
+                type="time"
+                value={profile.basalMorningTime ?? "08:00"}
+                onChange={(e) => update("basalMorningTime", e.target.value || undefined)}
+                className="input"
+              />
+            </Field>
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             <Field label="Dosis mañana (U)">
@@ -404,6 +414,22 @@ function PrescriptionSection({
                 onChange={(e) =>
                   update("prescribedBasalNight", e.target.value === "" ? undefined : Number(e.target.value))
                 }
+                className="input"
+              />
+            </Field>
+            <Field label="Hora habitual mañana">
+              <input
+                type="time"
+                value={profile.basalMorningTime ?? "08:00"}
+                onChange={(e) => update("basalMorningTime", e.target.value || undefined)}
+                className="input"
+              />
+            </Field>
+            <Field label="Hora habitual noche">
+              <input
+                type="time"
+                value={profile.basalNightTime ?? "21:00"}
+                onChange={(e) => update("basalNightTime", e.target.value || undefined)}
                 className="input"
               />
             </Field>
