@@ -201,6 +201,51 @@ export function evaluateAlerts(now: Date = new Date()) {
     }
   }
 
+  // Pending basal dose (not logged at the usual time)
+  if (profile) {
+    const dayBucket = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const parseTime = (hhmm: string, fallback: string) => {
+      const [h, m] = (/^\d{1,2}:\d{2}$/.test(hhmm) ? hhmm : fallback).split(":");
+      const d = new Date(now);
+      d.setHours(Number(h), Number(m), 0, 0);
+      return d;
+    };
+    const slots: Array<{ slot: "morning" | "night"; units?: number; at: Date }> = [
+      {
+        slot: "morning",
+        units: profile.prescribedBasalMorning ?? profile.prescribedBasalDaily,
+        at: parseTime(profile.basalMorningTime ?? "", "08:00"),
+      },
+      {
+        slot: "night",
+        units: profile.prescribedBasalNight,
+        at: parseTime(profile.basalNightTime ?? "", "21:00"),
+      },
+    ];
+    for (const s of slots) {
+      if (!s.units || s.units <= 0) continue;
+      const mins = (now.getTime() - s.at.getTime()) / MIN;
+      if (mins < 30 || mins > 90) continue;
+      const logged = insulin.some((e) => {
+        if (e.type !== basalType) continue0();
+        return false;
+      });
+      void logged;
+      const hasDose = insulin.some((e) => {
+        if (e.type !== basalType) return false;
+        const diff = (new Date(e.timestamp).getTime() - s.at.getTime()) / MIN;
+        return diff >= -90 && diff <= mins;
+      });
+      if (hasDose) continue;
+      fire(
+        `nph:pending:${s.slot}:${dayBucket}`,
+        "orange",
+        "alertMsg.orange.nphPending",
+        { basalType, moment: t(`alertMsg.moment.${s.slot}`), time: formatTime(s.at) },
+      );
+    }
+  }
+
   const sd = getSpecialDay();
   if (sd.active) {
     const bucket = Math.floor(now.getTime() / (2 * 60 * MIN));
