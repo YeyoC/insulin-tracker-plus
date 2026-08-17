@@ -33,7 +33,16 @@ function SetupPage() {
   const [ratioAfternoon, setRatioAfternoon] = useState<number | "">("");
   const [ratioNight, setRatioNight] = useState<number | "">("");
 
+  // Emergency contact + initial inventory (optional steps)
+  const [skipContact, setSkipContact] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [skipInventory, setSkipInventory] = useState(false);
+  const [invUnits, setInvUnits] = useState<number | "">("");
+  const [invOpenedDate, setInvOpenedDate] = useState("");
+
   const isOnceDailyBasal = ["Glargina", "Detemir", "Degludec"].includes(basalType);
+
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +76,19 @@ function SetupPage() {
       lisproRatioMorning: ratioMorning !== "" ? Number(ratioMorning) : undefined,
       lisproRatioAfternoon: ratioAfternoon !== "" ? Number(ratioAfternoon) : undefined,
       lisproRatioNight: ratioNight !== "" ? Number(ratioNight) : undefined,
+      emergencyContact:
+        !skipContact && (contactName.trim() || contactPhone.trim())
+          ? { name: contactName.trim(), phone: contactPhone.trim() }
+          : undefined,
+      inventory:
+        !skipInventory && invUnits !== ""
+          ? {
+              units: Number(invUnits),
+              ...(invOpenedDate ? { openedDate: invOpenedDate } : {}),
+            }
+          : undefined,
     });
+
     navigate({ to: "/" });
   };
 
@@ -237,7 +258,71 @@ function SetupPage() {
             </div>
           </div>
 
+          {/* Emergency contact (optional) */}
+          <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-primary">🚨 {t("settings.emergency")} (opcional)</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Se mostrará en caso de hipoglucemia severa.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSkipContact((s) => !s)}
+                className="shrink-0 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium hover:bg-accent"
+              >
+                {skipContact ? "Agregar" : "Saltar por ahora"}
+              </button>
+            </div>
+            {!skipContact && (
+              <div className="grid grid-cols-2 gap-3">
+                <Field label={t("settings.contactName")}>
+                  <input className="input text-sm" value={contactName}
+                    onChange={(e) => setContactName(e.target.value)} placeholder="ej. María" />
+                </Field>
+                <Field label={t("settings.contactPhone")}>
+                  <input type="tel" className="input text-sm" value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)} placeholder="ej. 662 000 0000" />
+                </Field>
+              </div>
+            )}
+          </div>
+
+          {/* Initial inventory (optional) */}
+          <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-primary">💉 {t("settings.inventory")} (opcional)</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Te avisaremos cuando estés por quedarte sin insulina.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSkipInventory((s) => !s)}
+                className="shrink-0 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium hover:bg-accent"
+              >
+                {skipInventory ? "Agregar" : "Saltar por ahora"}
+              </button>
+            </div>
+            {!skipInventory && (
+              <div className="grid grid-cols-2 gap-3">
+                <Field label={t("settings.units")}>
+                  <input type="number" inputMode="numeric" min={0} className="input text-sm"
+                    placeholder="ej. 300" value={invUnits}
+                    onChange={(e) => setInvUnits(e.target.value === "" ? "" : Number(e.target.value))} />
+                </Field>
+                <Field label={t("settings.openedDate")}>
+                  <input type="date" className="input text-sm" value={invOpenedDate}
+                    onChange={(e) => setInvOpenedDate(e.target.value)} />
+                </Field>
+              </div>
+            )}
+          </div>
+
           <button type="submit" className="btn-primary w-full mt-4">{t("setup.start")}</button>
+
         </form>
       </div>
     </div>
