@@ -226,11 +226,6 @@ export function evaluateAlerts(now: Date = new Date()) {
       if (!s.units || s.units <= 0) continue;
       const mins = (now.getTime() - s.at.getTime()) / MIN;
       if (mins < 30 || mins > 90) continue;
-      const logged = insulin.some((e) => {
-        if (e.type !== basalType) continue0();
-        return false;
-      });
-      void logged;
       const hasDose = insulin.some((e) => {
         if (e.type !== basalType) return false;
         const diff = (new Date(e.timestamp).getTime() - s.at.getTime()) / MIN;
