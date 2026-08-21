@@ -1,17 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { DayTimeline } from "@/components/DayTimeline";
 import { ActiveInsulinBar } from "@/components/ActiveInsulinBar";
 import { HomeExtras } from "@/components/HomeExtras";
 import { CriticalGlucoseOverlay } from "@/components/CriticalGlucoseOverlay";
+import { GlucoseSparkline } from "@/components/GlucoseSparkline";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 import { t, locale, useLang } from "@/lib/i18n";
 import { analyzeNphPattern, type NphSuggestion } from "@/lib/stats";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -29,6 +31,7 @@ function Home() {
   const { profile, ready } = useProfile();
   const [now, setNow] = useState<Date | null>(null);
   const [latest, setLatest] = useState<GlucoseEntry | null>(null);
+  const [recent24, setRecent24] = useState<GlucoseEntry[]>([]);
   const [nphSuggestion, setNphSuggestion] = useState<NphSuggestion | null>(null);
   const [prescriptionOpen, setPrescriptionOpen] = useState(false);
 
@@ -36,8 +39,12 @@ function Home() {
     setNow(new Date());
     const tt = setInterval(() => setNow(new Date()), 30_000);
     const refresh = () => {
-      const list = getGlucose();
+      const list = [...getGlucose()].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
       setLatest(list[0] ?? null);
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      setRecent24(list.filter((g) => new Date(g.timestamp).getTime() >= cutoff));
     };
     refresh();
     window.addEventListener("insulina:update", refresh);
@@ -46,6 +53,7 @@ function Home() {
       window.removeEventListener("insulina:update", refresh);
     };
   }, []);
+
 
   useEffect(() => {
     if (ready && !profile) navigate({ to: "/setup" });
@@ -71,6 +79,11 @@ function Home() {
         : status === "danger"
           ? "bg-danger text-danger-foreground"
           : "bg-muted text-muted-foreground";
+
+  const showTrend = recent24.length >= 2;
+  const delta = showTrend ? recent24[0].value - recent24[1].value : 0;
+  const TrendIcon = delta > 5 ? TrendingUp : delta < -5 ? TrendingDown : Minus;
+
 
   return (
     <AppShell>
@@ -100,10 +113,22 @@ function Home() {
         <p className="text-sm opacity-90">{t("home.lastGlucose")}</p>
         {latest ? (
           <>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-5xl font-bold">{latest.value}</span>
-              <span className="text-lg opacity-90">mg/dL</span>
+            <div className="mt-2 flex items-end justify-between gap-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-5xl font-bold">{latest.value}</span>
+                <span className="text-lg opacity-90">mg/dL</span>
+                {showTrend && (
+                  <span className="ml-1 inline-flex items-baseline gap-1 text-sm font-medium opacity-90">
+                    <TrendIcon className="size-5 self-center" aria-hidden="true" />
+                    {delta > 0 ? `+${delta}` : delta}
+                  </span>
+                )}
+              </div>
+              {showTrend && (
+                <GlucoseSparkline entries={recent24} className="shrink-0 opacity-80" />
+              )}
             </div>
+
             <p className="mt-2 text-sm opacity-90">
               {t(`moment.${latest.moment}`)} ·{" "}
               {new Date(latest.timestamp).toLocaleString(locale(lang), {
