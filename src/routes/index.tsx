@@ -31,6 +31,7 @@ function Home() {
   const { profile, ready } = useProfile();
   const [now, setNow] = useState<Date | null>(null);
   const [latest, setLatest] = useState<GlucoseEntry | null>(null);
+  const [recent24, setRecent24] = useState<GlucoseEntry[]>([]);
   const [nphSuggestion, setNphSuggestion] = useState<NphSuggestion | null>(null);
   const [prescriptionOpen, setPrescriptionOpen] = useState(false);
 
@@ -38,8 +39,12 @@ function Home() {
     setNow(new Date());
     const tt = setInterval(() => setNow(new Date()), 30_000);
     const refresh = () => {
-      const list = getGlucose();
+      const list = [...getGlucose()].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
       setLatest(list[0] ?? null);
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      setRecent24(list.filter((g) => new Date(g.timestamp).getTime() >= cutoff));
     };
     refresh();
     window.addEventListener("insulina:update", refresh);
@@ -48,6 +53,7 @@ function Home() {
       window.removeEventListener("insulina:update", refresh);
     };
   }, []);
+
 
   useEffect(() => {
     if (ready && !profile) navigate({ to: "/setup" });
