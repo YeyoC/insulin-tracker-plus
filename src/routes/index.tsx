@@ -113,10 +113,22 @@ function Home() {
         <p className="text-sm opacity-90">{t("home.lastGlucose")}</p>
         {latest ? (
           <>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-5xl font-bold">{latest.value}</span>
-              <span className="text-lg opacity-90">mg/dL</span>
+            <div className="mt-2 flex items-end justify-between gap-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-5xl font-bold">{latest.value}</span>
+                <span className="text-lg opacity-90">mg/dL</span>
+                {showTrend && (
+                  <span className="ml-1 inline-flex items-baseline gap-1 text-sm font-medium opacity-90">
+                    <TrendIcon className="size-5 self-center" aria-hidden="true" />
+                    {delta > 0 ? `+${delta}` : delta}
+                  </span>
+                )}
+              </div>
+              {showTrend && (
+                <GlucoseSparkline entries={recent24} className="shrink-0 opacity-80" />
+              )}
             </div>
+
             <p className="mt-2 text-sm opacity-90">
               {t(`moment.${latest.moment}`)} ·{" "}
               {new Date(latest.timestamp).toLocaleString(locale(lang), {
