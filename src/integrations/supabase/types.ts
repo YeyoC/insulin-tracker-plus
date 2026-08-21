@@ -14,7 +14,231 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          fired_at: string
+          id: string
+          key: string
+          level: string
+          message_key: string
+          message_params: Json | null
+          resent: boolean | null
+          resent_at: string | null
+          responded_at: string | null
+          response: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          fired_at: string
+          id: string
+          key: string
+          level: string
+          message_key: string
+          message_params?: Json | null
+          resent?: boolean | null
+          resent_at?: string | null
+          responded_at?: string | null
+          response?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          fired_at?: string
+          id?: string
+          key?: string
+          level?: string
+          message_key?: string
+          message_params?: Json | null
+          resent?: boolean | null
+          resent_at?: string | null
+          responded_at?: string | null
+          response?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exercise_entries: {
+        Row: {
+          context: string | null
+          duration_min: number
+          id: string
+          intensity: string | null
+          notes: string | null
+          occurred_at: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context?: string | null
+          duration_min?: number
+          id: string
+          intensity?: string | null
+          notes?: string | null
+          occurred_at: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context?: string | null
+          duration_min?: number
+          id?: string
+          intensity?: string | null
+          notes?: string | null
+          occurred_at?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      glucose_entries: {
+        Row: {
+          id: string
+          moment: string
+          notes: string | null
+          occurred_at: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          id: string
+          moment: string
+          notes?: string | null
+          occurred_at: string
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          id?: string
+          moment?: string
+          notes?: string | null
+          occurred_at?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      insulin_entries: {
+        Row: {
+          diff_reason: string | null
+          id: string
+          notes: string | null
+          occurred_at: string
+          recommended: number | null
+          site: string | null
+          type: string
+          units: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          diff_reason?: string | null
+          id: string
+          notes?: string | null
+          occurred_at: string
+          recommended?: number | null
+          site?: string | null
+          type: string
+          units: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          diff_reason?: string | null
+          id?: string
+          notes?: string | null
+          occurred_at?: string
+          recommended?: number | null
+          site?: string | null
+          type?: string
+          units?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_entries: {
+        Row: {
+          foods: Json
+          id: string
+          notes: string | null
+          occurred_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          foods?: Json
+          id: string
+          notes?: string | null
+          occurred_at: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          foods?: Json
+          id?: string
+          notes?: string | null
+          occurred_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          emergency_contact: Json | null
+          extra: Json
+          hydration_goal: number | null
+          icr: number | null
+          inventory: Json | null
+          isf: number | null
+          name: string
+          range_max: number | null
+          range_min: number | null
+          target: number | null
+          updated_at: string
+          user_id: string
+          wake_time: string | null
+        }
+        Insert: {
+          emergency_contact?: Json | null
+          extra?: Json
+          hydration_goal?: number | null
+          icr?: number | null
+          inventory?: Json | null
+          isf?: number | null
+          name?: string
+          range_max?: number | null
+          range_min?: number | null
+          target?: number | null
+          updated_at?: string
+          user_id: string
+          wake_time?: string | null
+        }
+        Update: {
+          emergency_contact?: Json | null
+          extra?: Json
+          hydration_goal?: number | null
+          icr?: number | null
+          inventory?: Json | null
+          isf?: number | null
+          name?: string
+          range_max?: number | null
+          range_min?: number | null
+          target?: number | null
+          updated_at?: string
+          user_id?: string
+          wake_time?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
