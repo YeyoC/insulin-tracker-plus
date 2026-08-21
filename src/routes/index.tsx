@@ -1,17 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { DayTimeline } from "@/components/DayTimeline";
 import { ActiveInsulinBar } from "@/components/ActiveInsulinBar";
 import { HomeExtras } from "@/components/HomeExtras";
 import { CriticalGlucoseOverlay } from "@/components/CriticalGlucoseOverlay";
+import { GlucoseSparkline } from "@/components/GlucoseSparkline";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useProfile } from "@/hooks/useProfile";
 import { getGlucose, glucoseStatus, type GlucoseEntry } from "@/lib/storage";
 import { t, locale, useLang } from "@/lib/i18n";
 import { analyzeNphPattern, type NphSuggestion } from "@/lib/stats";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
