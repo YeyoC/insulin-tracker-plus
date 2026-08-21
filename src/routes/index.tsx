@@ -80,6 +80,11 @@ function Home() {
           ? "bg-danger text-danger-foreground"
           : "bg-muted text-muted-foreground";
 
+  const showTrend = recent24.length >= 2;
+  const delta = showTrend ? recent24[0].value - recent24[1].value : 0;
+  const TrendIcon = delta > 5 ? TrendingUp : delta < -5 ? TrendingDown : Minus;
+
+
   return (
     <AppShell>
       <header>
